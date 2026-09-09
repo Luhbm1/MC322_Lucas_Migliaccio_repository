@@ -1,0 +1,12 @@
+Justificativa de escolha do tema:
+    Escolhi o tema de uma "Fábrica de Impellers de Turbocompressores Automotivos" por conta de interesse e afinidade pessoal com o espectro
+    automotivo, seja em desenvolvimento, preparação ou simplesmente como entusiasta. Meu emprego hoje envolve calibração e análise de dados
+    de ECUs automotivas, o que me deu a ideia inicial de criar uma "Fábrica de ECUs", mas a intenção de usar poucas entradas de matéria-prima
+    não seria ideal, já que apenas "Componentes Eletrônicos" ou "PCBs" ficaria genérico demais e ECUs possuem centenas de componentes diferentes.
+    Com isso, resolvi pensar em algo onde o produto final não necessitasse de variações de matéria-prima, e acabei chegando nesta ideia aplicada.
+
+Visão de Expansão Futura:
+    A planta industrial aplicada pode evoluir de uma simples fábrica apenas de impellers para uma fábrica de turbocompressores completos, onde
+    podem ser fabricados a maioria dos componentes principais que compõem um turbocompressor: rotor, eixo/turbina, rolamentos ou mancais,
+    caixa e voluta do lado compressor (admissão), caixa e voluta do lado da turbina (escapamento), válvulas de alívio, recirculação, etc...
+    Para isso, precisarão ser adicionadas novas matérias-primas, máquinas, estações de inspeção e caminhos de movimentação de produtos.
