@@ -142,7 +142,7 @@ public abstract class Maquina implements Auditavel {
         usos++;
         saude = Math.max(0.0, saude - GERADOR.nextDouble() * desgasteMaximo);
         if (estaQuebrada()) {
-            System.out.println(Cores.pintar("[X] " + nome + " soltou fumaca e parou! Saude critica.", Cores.VERMELHO));
+            System.out.println(Cores.pintar("[X] " + nome + " fumaceou e parou! Saude critica.", Cores.VERMELHO));
         }
     }
 

@@ -10,3 +10,105 @@ Visão de Expansão Futura:
     podem ser fabricados a maioria dos componentes principais que compõem um turbocompressor: rotor, eixo/turbina, rolamentos ou mancais,
     caixa e voluta do lado compressor (admissão), caixa e voluta do lado da turbina (escapamento), válvulas de alívio, recirculação, etc...
     Para isso, precisarão ser adicionadas novas matérias-primas, máquinas, estações de inspeção e caminhos de movimentação de produtos.
+
+Atualização Tarefa 3:
+NOMES DE PRODUTOS:
+    A escolha dos nomes "DualBladeArrancada", "RallySprint" e "TitanPulling" para cada um dos produtos (rotores de turbo) deve-se a uma sugestão
+    de aplicação coerente com o tamanho físico dos rotores, não necessariamente para que exatamente foram desenvolvidos, até porque as aplicações
+    de turbocompressores são diversas e muito compartilhadas entre si. 
+    O padrão "XX/YY" (em mm) para as medidas segue a notação usada no mercado de rotores compressores de turbo (e também de rotores de turbina):
+    - XX = indutor (inducer): diâmetro da boca por onde o ar ENTRA no rotor. É o diâmetro menor.
+    - YY = exdutor (exducer): diâmetro externo por onde o ar SAI, já comprimido. É o diâmetro maior.
+    O rotor TitanPulling possui indutor de 90mm e exdutor de 100mm, medidas extremamente grandes e frequentemente usadas em motores enormes 
+    (6.0L ~ 10.0L), principalmente motores diesel usados nos esportes de "pulling", onde tratores e caminhões arrastam um trenó de carga o mais 
+    longe possível. Os motores diesel trabalham com pressões de turbo altíssimas por vários segundos seguidos. Por isso é o rotor maior e mais 
+    pesado  (2500 g de liga), o que tem mais qualidade (0,9) e o que leva mais tempo para usinar (95 min). Tem 7 pás simples e perfil reforçado 
+    para carga contínua.
+    O rotor DualBladeArrancada possui indutor de 72mm e exdutor de 78mm, medidas grandes e adequadas para motores de média cilindrada (2.8L ~ 5.0L)
+    e alto giro, podendo ser usados para provas de arrancada (seja de 1/8 de milha até 1/2 milha), onde exige-se vazão máxima por alguns segundos.
+    Tem 6 pás duplas: pás inteiras intercaladas com pás menores ("splitter blades"). Esse desenho aumenta o fluxo de ar sem precisar de um diâmetro
+    maior. Usa 1500 g de liga, qualidade 0,7 e 70 min de usinagem.
+    o rotor RallySprint possui indutor de 50mm e exdutor de 58mm, medidas menores mas ainda consideradas acima da média, frequentemente aplicadas
+    em motores de baixa-média cilindrada (1.8L ~ 3.0L) para uso agressivo, como rally ou time-attack (provas de tempo em circuito). Nessas provas
+    o carro sai de curva o tempo todo e precisa de resposta imediata e entrega constante de torque, não de pico de potência. É leve (500 g), com 
+    pouca inércia e spool rápido. Tem qualidade 0,5 e 40 min de usinagem. É o produto mais barato e de alto volume, substituído com frequência em
+    veículos utilizados em provas longas. 
+    Os três tipos cobrem os extremos de massa, tempo e rigor de inspeção. Assim as estratégias de produção dão resultados bem diferentes entre si.
+
+VOCABULÁRIO TÉCNICO:
+    Termos de automobilismo (Paddock, Grid, Budget, Box) deixam o menu coerente com o tema e mais fácil de lembrar.
+    O nome das máquinas segue a etapa que executam: CentroUsinagemCNC, CabineEmbalagemVacuo e BancadaBalanceamento.
+    O centro de usinagem possui o apelido "Ciclone".
+    As mensagens do terminal não usam acentos, para evitar problemas de codificação em terminais diferentes e interpretação errada de caracteres.
+
+FUNCIONALIDADES IMPORTANTES:
+
+    ESTRATÉGIAS DE PRODUÇÃO DIFERENTES:
+    A interface EstrategiaProducao permite trocar o critério de escolha do pedido em tempo de execução, sem mudar o gerenciador. O filtro ehElegivel
+    (pedido pendente e com rotores restantes) vale para todas as estratégias e foi escrito uma vez só, como método padrão.
+    - Fila do Paddock (FIFO): atende na ordem de chegada. É justa e
+    previsível.
+    - Grid Lotado: atende primeiro o maior pedido, sem olhar o budget.
+    É agressiva e pode falhar por falta de recursos.
+    - Orçamento de Equipe: entre os pedidos que cabem no budget, escolhe
+    o que entrega mais rotores. Em caso de empate, escolhe o mais
+    barato. É a estratégia mais segura no cenário Apocalíptico.
+
+    CENÁRIOS DE OPERAÇÃO EXTREMOS:
+    Existem dois cenários de operação extremos (condição inicial). O cenário Ideal serve como padrão para o programa. O Apocalíptico testa os limites: 
+    tratamento de exceções, sucata e cancelamentos.
+
+    MÁQUINAS: DESGASTE, FALHAS E OFICINA:
+    - Desgaste: cada ciclo tira da saúde um valor aleatório entre 0 e o desgaste máximo do cenário. O desgaste só é aplicado depois de validar a 
+    operação, para que a máquina não se desgaste sem trabalhar.
+    - Falha = base x multiplicador x 100 / saude   (máximo de 95%). Quanto menor a saúde, maior a chance de falha, como numa máquina real sem 
+    a devida manutenção.
+    - Estados: OPERANTE (saúde >= 30%), DESGASTADA (< 30%) e QUEBRADA (<= 5%). Uma máquina quebrada recusa rotores, e o pedido volta para a fila.
+    - Reparo: custo = (100 - saude) x custoOperacao x 0,2. Uma máquina muito gasta custa mais para consertar, o que incentiva a preventiva.
+
+    SEMENTE DE SORTEIO:
+    O sorteio usa um gerador pseudoaleatório, que é uma sequência calculada a partir de um número inicial, a semente.
+    A semente do sorteio é opcional. Com ela, uma simulação pode ser repetida igual para testes e demonstrações.
+
+    QUALIDADE E INSPEÇÃO:
+    - Chance de rejeição na bancada = qualidade x 0,25 + risco acumulado. Os produtos de qualidade mais alta (Titan) passam por uma inspeção mais 
+    rigorosa, como acontece com peças críticas de verdade.
+    - Um rotor com risco >= 30% ou reprovado aparece como "RISCO ALTO" na auditoria. Rotores reprovados vão para a lista de sucata.
+    - Cada rotor guarda o lote da liga e o número do pedido de origem (organização e rastreabilidade).
+
+    CONTROLE DE CUSTOS E RECURSOS:
+    - Custo por rotor = CNC R$350 + Selagem R$40 + Bancada R$120 = R$510. Cada máquina só é cobrada depois de processar o rotor, então uma peça 
+    reprovada não paga as etapas que ela não chegou a usar.
+    - Antes de começar um lote, o sistema confere tudo: status do pedido, máquinas quebradas, capacidade da esteira e das máquinas, liga e budget. 
+    Se alguma checagem falhar, nada é consumido.
+    - Durante a produção, a sucata gasta liga e budget extras. Se os recursos acabarem no meio do lote, o pedido é cancelado e os rotores já 
+    entregues continuam no armazém.
+    - Compras de liga e reparos só acontecem se houver budget. Um alerta avisa quando o estoque fica abaixo do mínimo.
+    - A esteira transporta uma peça por vez, respeitando o limite de peso.
+
+    ERROS DE DIGITAÇÃO NO TERMINAL:
+    Os erros de digitação são tratados na leitura (lerInteiro e lerDouble), que repete a pergunta até receber um valor válido. Uma RuntimeException
+    inesperada não derruba o programa. O fim da entrada do teclado (NoSuchElementException) encerra o turno de forma limpa.
+
+    INTERFACE E CORES:
+    A classe Cores usa códigos ANSI e não pode ser instanciada:
+    - Verde: sucesso (aprovado, budget saudável, estratégia ativa)
+    - Amarelo: alertas e títulos de seção
+    - Vermelho: erros, quebras, sucata e budget abaixo de R$2.000
+    - Ciano: moldura do cabeçalho; 
+    - Negrito: títulos
+    O cabeçalho mostra sempre a estratégia, o cenário, o budget e o estoque. Assim o usuário decide sem precisar abrir outros menus.
+
+    GRADLE E JAVADOC:
+    - ./gradlew run executa o programa. A linha standardInput = System.in permite que o Scanner leia o teclado.
+    - Para rodar de maneira limpa, sem aparecer o progresso de 75% em toda etapa, roda-se com ./gradlew run -q --console=plain.
+    - ./gradlew javadoc gera a documentação em build/docs/javadoc/index.html.
+    - A codificação UTF-8 garante que os acentos dos comentários apareçam corretamente.
+    - O .gitattributes mantém o gradlew com quebra de linha LF, para que ele rode também em Linux e macOS.
+
+IDEIAS FUTURAS:
+
+    - Adicionar uma maneira de receber dinheiro dos clientes para retomar/aumentar o budget. Por enquanto o budget só diminui.
+    - Adicionar uma maneira de reaproveitar a sucata ou vender o material remanescente para a reciclagem.
+    - Adicionar a funcionalidade de produzir rotores sem pedidos e colocá-los no estoque para uso futuro.
+    - Juntamente com o anterior, adicionar a funcionalidade de empresas comprarem rotores prontos, sem precisar encomendá-los.

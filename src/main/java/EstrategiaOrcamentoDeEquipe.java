@@ -2,7 +2,7 @@ import java.util.List;
 
 /**
  * Estratégia de máximo de produtos: entre os pedidos que cabem no budget,
- * escolhe o que entrega mais rotores; em empate, o de menor custo.
+ * escolhe o que entrega mais rotores. Em caso de empate, o de menor custo.
  *
  * @author Lucas Migliaccio
  */

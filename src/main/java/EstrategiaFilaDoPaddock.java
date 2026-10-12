@@ -1,7 +1,7 @@
 import java.util.List;
 
 /**
- * Estratégia FIFO: atende primeiro o pedido elegível mais antigo.
+ * Estratégia FIFO - First In First Out: atende primeiro o pedido elegível mais antigo.
  *
  * @author Lucas Migliaccio
  */

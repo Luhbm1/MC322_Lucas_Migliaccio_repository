@@ -2,7 +2,7 @@ import java.util.NoSuchElementException;
 import java.util.Scanner;
 
 /**
- * Ponto de entrada e camada de interação com o usuário (menu de terminal).
+ * Ponto de entrada e de interação com o usuário (menu de terminal).
  * <p>
  * É o único ponto que captura exceções: erros de domínio
  * ({@link PlantaException}), de entrada ({@link IllegalArgumentException}) e
@@ -50,7 +50,7 @@ public class Main {
                 executando = executarComTratamento(gp, titanio, estrategias);
             }
             System.out.println("\nTurno encerrado. " + gp.getTamanhoArmazem()
-                    + " rotor(es) prontos para o grid. Ate a proxima corrida!");
+                    + " rotor(es) prontos para entrega. Ate o proximo turno!");
         } catch (NoSuchElementException e) {
             System.out.println("\n[!] Entrada do teclado encerrada. Turno finalizado.");
         } finally {
@@ -58,7 +58,7 @@ public class Main {
         }
     }
 
-    // Executa uma opcao do menu; qualquer erro recuperavel volta ao menu
+    // Executa uma opcao do menu, qualquer erro recuperavel volta ao menu
     private static boolean executarComTratamento(GerenciadorProducao gp, MateriaPrima titanio,
                                                  EstrategiaProducao[] estrategias) {
         try {
@@ -92,7 +92,16 @@ public class Main {
             case 1: menuPedidos(gp); break;
             case 2: menuFabricacao(gp); break;
             case 3: menuConsultas(gp); break;
-            case 4: gp.comprarMateriaPrima(lerDouble("Gramas de liga a comprar", 1.0, 50000.0)); break;
+            case 4: {
+            gp.exibirPrecoLiga();
+            double gramas = lerDouble("Gramas de liga a comprar (0 = voltar)", 0.0, 50000.0);
+            if (gramas == 0) {
+            System.out.println("Compra cancelada. Voltando ao menu...");
+            break;
+            }
+            gp.comprarMateriaPrima(gramas);
+            break;
+            }
             case 5: menuEstrategia(gp, estrategias); break;
             case 6: menuAuditoria(gp); break;
             default: return false;
@@ -102,7 +111,7 @@ public class Main {
 
     // ---------- Submenus ----------
 
-    private static void menuPedidos(GerenciadorProducao gp) {
+    private static void menuPedidos(GerenciadorProducao gp) { // ao selecionar opção 1
         secao("PEDIDOS DAS EQUIPES");
         opcoes("1 - Registrar novo pedido", "2 - Atualizar quantidade", "3 - Cancelar pedido",
                "4 - Listar pedidos", "0 - Voltar");
@@ -121,7 +130,7 @@ public class Main {
         }
     }
 
-    private static void menuFabricacao(GerenciadorProducao gp) {
+    private static void menuFabricacao(GerenciadorProducao gp) { // ao selecionar opção 2
         secao("LINHA DE PRODUCAO");
         opcoes("1 - Produzir proximo pedido (estrategia ativa)", "2 - Produzir pedido especifico", "0 - Voltar");
         switch (lerInteiro("ESCOLHA", 0, 2)) {
@@ -134,7 +143,7 @@ public class Main {
         }
     }
 
-    private static void menuConsultas(GerenciadorProducao gp) {
+    private static void menuConsultas(GerenciadorProducao gp) { // ao selecionar opção 3
         secao("CONSULTAR");
         opcoes("1 - Armazem (rotores acabados)", "2 - Almoxarifado (liga bruta)", "0 - Voltar");
         switch (lerInteiro("ESCOLHA", 0, 2)) {
@@ -144,7 +153,7 @@ public class Main {
         }
     }
 
-    private static void menuEstrategia(GerenciadorProducao gp, EstrategiaProducao[] estrategias) {
+    private static void menuEstrategia(GerenciadorProducao gp, EstrategiaProducao[] estrategias) { // ao selecionar opção 5
         secao("ESTRATEGIA DE PRODUCAO");
         for (int i = 0; i < estrategias.length; i++) {
             String ativa = estrategias[i] == gp.getEstrategiaAtual() ? Cores.pintar("  [ATIVA]", Cores.VERDE) : "";
@@ -155,7 +164,7 @@ public class Main {
         if (op > 0) gp.setEstrategia(estrategias[op - 1]);
     }
 
-    private static void menuAuditoria(GerenciadorProducao gp) {
+    private static void menuAuditoria(GerenciadorProducao gp) { // ao selecionar opção 6
         secao("AUDITORIA E OFICINA");
         opcoes("1 - Relatorio geral", "2 - Detalhar maquinas", "3 - Detalhar rotores",
                "4 - Reparar maquina", "0 - Voltar");
@@ -180,7 +189,7 @@ public class Main {
         System.out.println(Cores.CIANO + LINHA + Cores.RESET);
         System.out.println("Rotores billet em Ti-6Al-4V para turbos de competicao.");
         System.out.println("A temporada esquentou: varias equipes, pedidos concorrentes");
-        System.out.println("e auditorias da federacao. Escolha sua estrategia de box!");
+        System.out.println("e auditorias da federacao. Escolha sua estrategia!");
         System.out.println();
         System.out.println("Desenvolvido por Lucas Migliaccio");
         System.out.println(Cores.CIANO + LINHA + Cores.RESET);
@@ -205,7 +214,7 @@ public class Main {
     }
 
     private static void exibirCabecalho(GerenciadorProducao gp, MateriaPrima titanio) {
-        String corBudget = gp.getBudget() < 2000 ? Cores.VERMELHO : Cores.VERDE;
+        String corBudget = gp.getBudget() < 2000 ? Cores.VERMELHO : Cores.VERDE; // cor vermelha quando budget está baixo
         System.out.println("\n" + Cores.CIANO + LINHA + Cores.RESET);
         System.out.println(Cores.NEGRITO + "  [LM RACING COMPRESSOR WHEELS]" + Cores.RESET);
         System.out.println("  ESTRATEGIA ATUAL : " + gp.getEstrategiaAtual().getNomeEstrategia());

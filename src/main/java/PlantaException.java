@@ -1,5 +1,5 @@
 /**
- * Exceção base para violações das regras de negócio da planta LM Racing.
+ * Exceção base para violações das regras de negócio da planta.
  * <p>
  * Permite que a camada de interação diferencie erros de domínio (pedidos,
  * recursos, máquinas) de erros de entrada do usuário e de falhas inesperadas.

@@ -103,7 +103,7 @@ public class GerenciadorProducao {
     /** Lista todos os pedidos com custos atualizados. */
     public void listarDemandas() {
         atualizarCustosDemandas();
-        System.out.println("\n--- PEDIDOS DAS EQUIPES ---");
+        System.out.println("\n--- PEDIDOS DAS EMPRESAS ---");
         if (demandas.isEmpty()) System.out.println("Nenhum pedido no paddock.");
         for (Demanda d : demandas) System.out.println(d);
     }
@@ -143,7 +143,7 @@ public class GerenciadorProducao {
 
     /*
      * Fluxo: (1) valida tudo sem alterar estado; (2) produz unidade a unidade.
-     * Se a sucata consumir os recursos no meio do lote, o pedido e cancelado
+     * Se a sucata consumir os recursos no meio do lote, o pedido é cancelado
      * (regra da Tarefa 3) mantendo os rotores ja entregues.
      */
     private void fabricarDemanda(Demanda d) {
@@ -171,7 +171,7 @@ public class GerenciadorProducao {
                     break;
                 }
                 if (budget < custoUnidade) {
-                    System.out.println("[X] O budget secou antes da bandeirada. Pedido cancelado.");
+                    System.out.println("[X] O budget secou antes do final. Pedido cancelado.");
                     d.cancelar();
                     break;
                 }
@@ -364,6 +364,13 @@ public class GerenciadorProducao {
 
     /** Exibe o budget atual. */
     public void exibirBudget() { System.out.printf("Budget atual: R$ %.2f%n", budget); }
+
+    /** Exibe o preço da liga definido pelo cenário ativo e o budget atual. */
+    public void exibirPrecoLiga() {
+    System.out.printf("Preco da liga: R$ %.2f/%s (cenario %s)%n",
+            materiaPrima.getCustoPorUnidade(), materiaPrima.getUnidade(), cenario.name());
+    System.out.printf("Maximo compravel: %.1f g%n", budget / materiaPrima.getCustoPorUnidade());
+    }
 
     /** Exibe o resumo por tipo e o diagnóstico de cada rotor no armazém. */
     public void exibirArmazem() {

@@ -10,7 +10,7 @@ repositories {
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_17
+    sourceCompatibility = JavaVersion.VERSION_17 // para adaptar-se ao uso de outras versões de JDK que não a 17 (no meu caso o JDK 26)
     targetCompatibility = JavaVersion.VERSION_17
 }
 
@@ -18,11 +18,11 @@ application {
     mainClass = 'Main'
 }
 
-tasks.withType(JavaCompile).configureEach {
+tasks.withType(JavaCompile).configureEach { // tratamento de acentos nos comentarios
     options.encoding = 'UTF-8'
 }
 
-javadoc {
+javadoc { // organização da documentação javadoc
     title = 'LM Racing Compressor Wheels - Documentacao'
     options.encoding = 'UTF-8'
     options.charSet = 'UTF-8'

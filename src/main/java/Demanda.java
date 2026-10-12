@@ -1,5 +1,5 @@
 /**
- * Pedido de uma equipe para um tipo de rotor.
+ * Pedido de uma empresa para um tipo de rotor.
  * <p>
  * Controla quantidade total, quantidade já entregue e o ciclo de vida
  * ({@link StatusDemanda}). Toda transição inválida lança

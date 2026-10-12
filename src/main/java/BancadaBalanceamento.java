@@ -34,8 +34,8 @@ public class BancadaBalanceamento extends Maquina {
 
         produto.setStatus(aprovado ? StatusRotor.APROVADO : StatusRotor.REPROVADO);
         System.out.println(aprovado
-                ? Cores.pintar("[OK] " + produto.getId() + " girou liso a 150.000 rpm. Aprovado!", Cores.VERDE)
-                : Cores.pintar("[X] " + produto.getId() + " vibrou na bancada. Sucata!", Cores.VERMELHO));
+                ? Cores.pintar("[OK] " + produto.getId() + " girou otimo a 180.000 rpm. Aprovado!", Cores.VERDE)
+                : Cores.pintar("[X] " + produto.getId() + " vibrou na bancada. Material para sucata.", Cores.VERMELHO));
         return aprovado;
     }
 

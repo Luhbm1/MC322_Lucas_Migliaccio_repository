@@ -73,7 +73,7 @@ public abstract class Produto implements Auditavel {
     }
 
     /**
-     * Vincula o rotor ao lote de liga e ao pedido de origem (rastreabilidade).
+     * Vincula o rotor ao lote de liga e ao pedido de origem.
      *
      * @param lote código do lote
      */

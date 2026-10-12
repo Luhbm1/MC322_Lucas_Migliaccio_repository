@@ -5,10 +5,10 @@
  * @author Lucas Migliaccio
  */
 public enum Cenario {
-    /** Recursos fartos, desgaste e falhas reduzidos. */
-    IDEAL("Ideal - Temporada de Testes", 100000.0, 20000.0, 0.60, 0.5, 1.0, 0.00),
-    /** Recursos escassos, falhas ampliadas e rotores já nascem com risco. */
-    APOCALIPTICO("Apocaliptico - Final de Campeonato", 8000.0, 4000.0, 0.90, 2.5, 6.0, 0.15);
+    /** Recursos extensos, desgaste e falhas reduzidos. */
+    IDEAL("Ideal - Fora de temporada, condicao tranquila e riscos baixos", 100000.0, 20000.0, 0.60, 0.5, 1.0, 0.00), // budget altíssimo, muito estoque, preço reduzido, baixas falhas
+    /** Recursos escassos, falhas ampliadas, rotores já nascem com risco. */
+    APOCALIPTICO("Apocaliptico - Em temporada, condicao apertada e riscos demasiados", 8000.0, 4000.0, 0.90, 2.5, 6.0, 0.15); // budget baixo, pouco estoque, preço aumentado, altas falhas
 
     private final String descricao;
     private final double budgetInicial;

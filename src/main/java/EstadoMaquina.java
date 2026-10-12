@@ -5,7 +5,7 @@
  */
 public enum EstadoMaquina {
     /** Saúde acima do limiar de manutenção. */
-    OPERANTE("Operante"),
+    OPERANTE("Operante normalmente"),
     /** Saúde abaixo do limiar de manutenção, mas ainda funcional. */
     DESGASTADA("Desgastada - agendar manutencao"),
     /** Saúde crítica: não aceita novos rotores até ser reparada. */

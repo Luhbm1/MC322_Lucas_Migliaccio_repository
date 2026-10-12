@@ -1,6 +1,6 @@
 /**
  * Cabine de selagem a vácuo: embala o rotor. Uma falha adiciona 10% de risco.
- * Custo de R$ 40 por ciclo, falha base de 10%.
+ * Custo de R$40 por ciclo, falha base de 10%.
  *
  * @author Lucas Migliaccio
  */
@@ -24,7 +24,7 @@ public class CabineEmbalagemVacuo extends Maquina {
         System.out.println("[OK] " + produto.getId() + " selado em embalagem antiestatica.");
         if (verificarFalha()) {
             produto.aumentarProbabilidadeFalha(AUMENTO_RISCO);
-            System.out.println(Cores.pintar("[!] Selagem irregular: umidade na borda de ataque!", Cores.AMARELO));
+            System.out.println(Cores.pintar("[!] Selagem irregular. Risco de falha aumentado.", Cores.AMARELO));
         }
         return true;
     }

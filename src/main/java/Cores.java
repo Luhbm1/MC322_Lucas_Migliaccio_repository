@@ -15,7 +15,7 @@ public final class Cores {
     public static final String AMARELO = "\u001B[33m";
     /** Ciano: molduras do cabeçalho. */
     public static final String CIANO = "\u001B[36m";
-    /** Texto em negrito. */
+    /** Coloca o texto em negrito. */
     public static final String NEGRITO = "\u001B[1m";
 
     private Cores() { }
@@ -24,7 +24,7 @@ public final class Cores {
      * Envolve o texto com a cor indicada e reseta a cor ao final.
      *
      * @param texto texto a ser colorido
-     * @param cor   código ANSI (uma das constantes desta classe)
+     * @param cor   código ANSI (fixo)
      * @return texto colorido pronto para impressão
      */
     public static String pintar(String texto, String cor) { return cor + texto + RESET; }

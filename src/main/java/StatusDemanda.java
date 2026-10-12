@@ -10,7 +10,7 @@ public enum StatusDemanda {
     /** Rotores sendo fabricados. */
     EM_PRODUCAO("EM PRODUCAO - rotores na linha de usinagem"),
     /** Todos os rotores entregues. */
-    CONCLUIDA("CONCLUIDA   - pedido entregue a equipe"),
+    CONCLUIDA("CONCLUIDA   - pedido entregue a empresa"),
     /** Cancelado pelo usuário ou por falta de recursos durante a produção. */
     CANCELADA("CANCELADA   - sem budget ou sem liga");
 

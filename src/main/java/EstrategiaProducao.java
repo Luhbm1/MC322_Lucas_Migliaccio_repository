@@ -1,7 +1,7 @@
 import java.util.List;
 
 /**
- * Estratégia (padrão Strategy) que decide qual pedido entra na linha de produção.
+ * Estratégia que decide qual pedido entra na linha de produção.
  *
  * @author Lucas Migliaccio
  */
