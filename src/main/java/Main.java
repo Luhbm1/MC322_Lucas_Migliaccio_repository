@@ -143,16 +143,6 @@ public class Main {
         }
     }
 
-    private static void menuConsultas(GerenciadorProducao gp) { // ao selecionar opção 3
-        secao("CONSULTAR");
-        opcoes("1 - Armazem (rotores acabados)", "2 - Almoxarifado (liga bruta)", "0 - Voltar");
-        switch (lerInteiro("ESCOLHA", 0, 2)) {
-            case 1: gp.exibirArmazem(); break;
-            case 2: gp.exibirEstoque(); break;
-            default: break;
-        }
-    }
-
     private static void menuEstrategia(GerenciadorProducao gp, EstrategiaProducao[] estrategias) { // ao selecionar opção 5
         secao("ESTRATEGIA DE PRODUCAO");
         for (int i = 0; i < estrategias.length; i++) {
@@ -164,11 +154,25 @@ public class Main {
         if (op > 0) gp.setEstrategia(estrategias[op - 1]);
     }
 
+
+        private static void menuConsultas(GerenciadorProducao gp) { // ao selecionar opção 3
+        secao("CONSULTAR");
+        opcoes("1 - Armazem (rotores acabados)", "2 - Almoxarifado (liga bruta)",
+               "3 - Linha de producao (maquinas e componentes)", "0 - Voltar");
+        switch (lerInteiro("ESCOLHA", 0, 3)) {
+            case 1: gp.exibirArmazem(); break;
+            case 2: gp.exibirEstoque(); break;
+            case 3: gp.exibirLinha(); break;
+            default: break;
+        }
+    }
+
     private static void menuAuditoria(GerenciadorProducao gp) { // ao selecionar opção 6
         secao("AUDITORIA E OFICINA");
         opcoes("1 - Relatorio geral", "2 - Detalhar maquinas", "3 - Detalhar rotores",
-               "4 - Reparar maquina", "0 - Voltar");
-        switch (lerInteiro("ESCOLHA", 0, 4)) {
+               "4 - Reparar maquina (revisa componentes)", "5 - Auditoria estrutural (linha > maquina > pecas)",
+               "0 - Voltar");
+        switch (lerInteiro("ESCOLHA", 0, 5)) {
             case 1: gp.gerarAuditoriaGeral(); break;
             case 2: gp.detalharMaquinas(); break;
             case 3: gp.detalharProdutos(); break;
@@ -176,6 +180,7 @@ public class Main {
                 gp.listarMaquinas();
                 gp.repararMaquina(lerInteiro("Maquina", 1, gp.getQuantidadeMaquinas()));
                 break;
+            case 5: gp.exibirAuditoriaEstrutural(); break;
             default: break;
         }
     }

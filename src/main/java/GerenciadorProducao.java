@@ -7,7 +7,11 @@ import java.util.List;
  * Todas as operações validam suas pré-condições antes de alterar qualquer
  * estado. Em caso de violação, lançam uma {@link PlantaException} (ou
  * subclasse) e deixam estoque, budget e pedidos intactos.
- *
+ * <p>
+ * As máquinas ficam agrupadas em uma {@link LinhaDeProducao} (agregação);
+ * o gerenciador conversa apenas com a linha e as máquinas, nunca com as
+ * partes internas delas.
+ * 
  * @author Lucas Migliaccio
  */
 public class GerenciadorProducao {
@@ -15,7 +19,7 @@ public class GerenciadorProducao {
     private final List<Demanda> demandas = new ArrayList<>();
     private final List<Produto> produtosFabricados = new ArrayList<>();
     private final List<Produto> rotoresSucateados = new ArrayList<>();
-    private final List<Maquina> maquinas = new ArrayList<>();
+    private final LinhaDeProducao linha = new LinhaDeProducao("Linha 1 - Rotores Billet");
     private final MateriaPrima materiaPrima;
     private final Esteira esteira;
     private final Cenario cenario;
@@ -38,13 +42,16 @@ public class GerenciadorProducao {
     }
 
     /**
-     * Adiciona uma máquina ao final da linha, já configurada para o cenário.
+     * Configura a máquina para o cenário e a adiciona ao final da linha.
      *
      * @param maquina máquina a adicionar
+     * @throws IllegalArgumentException se a máquina for nula
+     * @throws PlantaException          se a máquina já estiver na linha
      */
     public void adicionarMaquina(Maquina maquina) {
+        if (maquina == null) throw new IllegalArgumentException("Maquina nao informada.");
         maquina.configurarCenario(cenario);
-        maquinas.add(maquina);
+        linha.adicionarMaquina(maquina);
     }
 
     /**
@@ -220,7 +227,7 @@ public class GerenciadorProducao {
         if (!esteira.verificarCapacidade(massa)) {
             throw new PlantaException("O bloco de " + massa + " g excede o limite da " + esteira.getNome() + ".");
         }
-        for (Maquina m : maquinas) {
+        for (Maquina m : linha.getMaquinas()) {
             if (!m.suporta(massa)) {
                 throw new PlantaException("O bloco de " + massa + " g excede a capacidade do(a) " + m.getNome() + ".");
             }
@@ -248,7 +255,7 @@ public class GerenciadorProducao {
         rotor.registrarLote(materiaPrima.getId() + "/PED" + d.getNumero());
         System.out.println("\n>> " + rotor.getId() + " (tempo estimado: " + rotor.calcularTempoProducao() + " min)");
 
-        for (Maquina m : maquinas) {
+        for (Maquina m : linha.getMaquinas()) {
             transportar(rotor);
             boolean seguiu = m.processar(rotor);
             budget -= m.getCustoOperacao();
@@ -262,31 +269,22 @@ public class GerenciadorProducao {
         esteira.removerItem();
     }
 
-    private double calcularCustoProducao() {
-        double total = 0;
-        for (Maquina m : maquinas) total += m.getCustoOperacao();
-        return total;
-    }
+    private double calcularCustoProducao() { return linha.calcularCustoCiclo(); }
 
     private void atualizarCustosDemandas() {
         double custo = calcularCustoProducao();
         for (Demanda d : demandas) d.definirCustoOperacaoPorUnidade(custo);
     }
 
-    private Maquina buscarMaquinaQuebrada() {
-        for (Maquina m : maquinas) {
-            if (m.estaQuebrada()) return m;
-        }
-        return null;
-    }
+    private Maquina buscarMaquinaQuebrada() { return linha.buscarMaquinaQuebrada(); }
 
     private void ligarLinha() {
         esteira.ligar();
-        for (Maquina m : maquinas) m.ligar();
+        linha.ligar();
     }
 
     private void desligarLinha() {
-        for (Maquina m : maquinas) m.desligar();
+        linha.desligar();
         esteira.desligar();
     }
 
@@ -306,6 +304,7 @@ public class GerenciadorProducao {
 
     /** Lista as máquinas com saúde e custo de reparo. */
     public void listarMaquinas() {
+        List<Maquina> maquinas = linha.getMaquinas();
         for (int i = 0; i < maquinas.size(); i++) {
             Maquina m = maquinas.get(i);
             System.out.printf("%d - %-42s saude %5.1f%% | reparo R$ %.2f%n",
@@ -321,11 +320,11 @@ public class GerenciadorProducao {
      * @throws RecursoInsuficienteException se o budget não cobrir o reparo
      */
     public void repararMaquina(int indice) {
-        if (indice < 1 || indice > maquinas.size()) {
+        if (indice < 1 || indice > linha.getQuantidadeMaquinas()) {
             throw new IllegalArgumentException("Maquina " + indice + " inexistente. Escolha entre 1 e "
-                    + maquinas.size() + ".");
+                    + linha.getQuantidadeMaquinas() + ".");
         }
-        Maquina m = maquinas.get(indice - 1);
+        Maquina m = linha.getMaquinas().get(indice - 1);
         double custo = m.calcularCustoReparo();
         if (custo > budget) {
             throw new RecursoInsuficienteException(String.format(
@@ -337,7 +336,7 @@ public class GerenciadorProducao {
     }
 
     /** @return quantidade de máquinas na linha */
-    public int getQuantidadeMaquinas() { return maquinas.size(); }
+    public int getQuantidadeMaquinas() { return linha.getQuantidadeMaquinas(); }
 
     // ---------- Compras e consultas ----------
 
@@ -410,14 +409,14 @@ public class GerenciadorProducao {
     /** Audita máquinas, rotores do armazém e sucata. */
     public void gerarAuditoriaGeral() {
         List<Auditavel> componentes = new ArrayList<>();
-        componentes.addAll(maquinas);
+        componentes.addAll(linha.getMaquinas());
         componentes.addAll(produtosFabricados);
         componentes.addAll(rotoresSucateados);
         auditar("AUDITORIA GERAL DA PLANTA", componentes);
     }
 
-    /** Audita apenas as máquinas. */
-    public void detalharMaquinas() { auditar("AUDITORIA DE MAQUINAS", maquinas); }
+    /** Audita apenas as máquinas, incluindo o diagnóstico dos componentes. */
+    public void detalharMaquinas() { auditar("AUDITORIA DE MAQUINAS", linha.getMaquinas()); }
 
     /** Audita os rotores do armazém e da sucata. */
     public void detalharProdutos() {
@@ -435,6 +434,18 @@ public class GerenciadorProducao {
         }
         if (itens.isEmpty()) System.out.println("Nada para auditar.");
         System.out.println("Itens auditados: " + itens.size() + " | Exigem intervencao: " + alertas);
+    }
+
+    /** Exibe a estrutura da linha e o estado resumido dos componentes de cada máquina. */
+    public void exibirLinha() {
+        System.out.println("\n================ LINHA DE PRODUCAO ================");
+        System.out.println(linha.gerarResumo());
+    }
+
+    /** Exibe a auditoria em cascata: Linha &gt; Máquinas &gt; Componentes. */
+    public void exibirAuditoriaEstrutural() {
+        System.out.println("\n================ AUDITORIA ESTRUTURAL ================");
+        System.out.println(linha.gerarRelatorioDiagnostico());
     }
 
     /** @return budget atual, em R$ */

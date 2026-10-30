@@ -106,6 +106,20 @@ FUNCIONALIDADES IMPORTANTES:
     - A codificação UTF-8 garante que os acentos dos comentários apareçam corretamente.
     - O .gitattributes mantém o gradlew com quebra de linha LF, para que ele rode também em Linux e macOS.
 
+Atualização Tarefa 5:
+
+    DIAGRAMA UML:
+        O diagrama de classes fica em docs/uml/, em código PlantUML (diagrama-classes.puml).
+        Ele mostra as classes, os atributos, os métodos e as relações do sistema.
+
+    DIAGNOSTICO DAS MAQUINAS:
+        - Avisa quando a máquina precisa de manutenção preventiva, olhando a saúde, o número de usos e o histórico de falhas.
+        - Pode montar um relatório com nome, saúde, estado, usos, falhas e custo estimado de reparo.
+
+    LISTAGEM DE MAQUINAS NO BOX:
+        O menu lista as máquinas numeradas, com a saúde (%) e o custo de reparo (R$).
+        Assim o usuário escolhe qual máquina reparar sem precisar abrir outro menu.
+
 IDEIAS FUTURAS:
 
     - Adicionar uma maneira de receber dinheiro dos clientes para retomar/aumentar o budget. Por enquanto o budget só diminui.

@@ -1,0 +1,65 @@
+@startuml
+interface Auditavel {
+  +gerarRelatorioDiagnostico(): String
+  +precisaManutencao(): boolean
+}
+class GerenciadorProducao {
+  -linha: LinhaDeProducao
+  +exibirLinha()
+  +exibirAuditoriaEstrutural()
+}
+class LinhaDeProducao {
+  -nome: String
+  -maquinas: List<Maquina>
+  +adicionarMaquina(m: Maquina)
+  +getMaquinas(): List<Maquina> {unmodifiable}
+  +calcularCustoCiclo(): double
+  +buscarMaquinaQuebrada(): Maquina
+}
+abstract class Maquina {
+  -motor: MotorSpindle
+  -sensor: SensorVibracao
+  -garras: List<GarraFixacao>
+  +processar(p: Produto): boolean
+  +lerTemperaturaMotor(): double
+  +contarGarrasFolgadas(): int
+  +reparar()
+  -operarComponentes(p: Produto)
+}
+class CentroUsinagemCNC
+class CabineEmbalagemVacuo
+class BancadaBalanceamento
+class MotorSpindle {
+  -temperatura: double
+  -temperaturaMaxima: double
+  +operar(sorteio: double)
+  +revisar()
+  +calcularPenalidade(): double
+}
+class SensorVibracao {
+  -desvioCalibracao: double
+  +operar(sorteio: double)
+  +revisar()
+  +calcularPenalidade(): double
+}
+class GarraFixacao {
+  -posicao: int
+  -pressao: double
+  +operar(sorteio: double)
+  +revisar()
+  +calcularPenalidade(): double
+}
+GerenciadorProducao *-- "1" LinhaDeProducao
+LinhaDeProducao o-- "1..*" Maquina
+Maquina *-- "1" MotorSpindle
+Maquina *-- "1" SensorVibracao
+Maquina *-- "1..*" GarraFixacao
+Maquina <|-- CentroUsinagemCNC
+Maquina <|-- CabineEmbalagemVacuo
+Maquina <|-- BancadaBalanceamento
+Auditavel <|.. LinhaDeProducao
+Auditavel <|.. Maquina
+Auditavel <|.. MotorSpindle
+Auditavel <|.. SensorVibracao
+Auditavel <|.. GarraFixacao
+@enduml

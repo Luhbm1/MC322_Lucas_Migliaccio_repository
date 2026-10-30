@@ -1,4 +1,6 @@
 import java.util.Random;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Máquina da linha de produção.
@@ -11,13 +13,21 @@ import java.util.Random;
  *   <li>saúde de até 5% = quebrada: recusa rotores até ser reparada;</li>
  *   <li>o reparo custa {@code (100 - saude) * custoOperacao * 0.2}.</li>
  * </ul>
- *
+ * <p>
+ * É o "Todo" da composição: cria e controla internamente um
+ * {@link MotorSpindle} (1:1), um {@link SensorVibracao} (1:1) e quatro
+ * {@link GarraFixacao} (1:N). As partes nunca são expostas; o acesso é feito
+ * por métodos de delegação. Partes com defeito aumentam o risco dos rotores
+ * processados, e {@link #reparar()} também revisa todas as partes.
+ * 
  * @author Lucas Migliaccio
  */
 public abstract class Maquina implements Auditavel {
 
     private static final Random GERADOR = new Random();
     private static final double LIMIAR_QUEBRA = 5.0;
+    private static final double TEMP_MAXIMA_MOTOR = 85.0;
+    private static final int QTD_GARRAS = 4;
 
     private String nome;
     private boolean ligada;
@@ -30,6 +40,9 @@ public abstract class Maquina implements Auditavel {
     private double desgasteMaximo = 3.0;
     private int historicoFalhas;
     private int usos;
+    private final MotorSpindle motor;            // 1:1
+    private final SensorVibracao sensor;         // 1:1
+    private final List<GarraFixacao> garras;     // 1:N
 
     /**
      * Cria uma máquina desligada com saúde 100%.
@@ -44,6 +57,10 @@ public abstract class Maquina implements Auditavel {
         this.capacidadeMaxima = capacidadeMaxima;
         this.probabilidadeFalhaBase = probabilidadeFalhaBase;
         this.custoOperacao = custoOperacao;
+        this.motor = new MotorSpindle(TEMP_MAXIMA_MOTOR);
+        this.sensor = new SensorVibracao();
+        this.garras = new ArrayList<>();
+        for (int i = 1; i <= QTD_GARRAS; i++) garras.add(new GarraFixacao(i));
     }
 
     /**
@@ -136,6 +153,7 @@ public abstract class Maquina implements Auditavel {
                     + " g excede a capacidade de " + capacidadeMaxima + " g do(a) " + nome + ".");
         }
         aplicarDesgaste();
+        operarComponentes(produto);
     }
 
     private void aplicarDesgaste() {
@@ -144,6 +162,44 @@ public abstract class Maquina implements Auditavel {
         if (estaQuebrada()) {
             System.out.println(Cores.pintar("[X] " + nome + " fumaceou e parou! Saude critica.", Cores.VERMELHO));
         }
+    }
+
+    // Cada ciclo desgasta as partes. Partes defeituosas aumentam o risco do rotor
+    private void operarComponentes(Produto produto) {
+        motor.operar(sortear());
+        sensor.operar(sortear());
+        for (GarraFixacao g : garras) g.operar(sortear());
+        double penalidade = calcularPenalidadeComponentes();
+        if (penalidade > 0) {
+            produto.aumentarProbabilidadeFalha(penalidade);
+            System.out.println(Cores.pintar(String.format("[!] Componentes de %s com defeito: +%.0f%% de risco.",
+                    getNome(), penalidade * 100), Cores.AMARELO));
+        }
+    }
+
+    // Soma o risco extra por todas as partes defeituosas
+    private double calcularPenalidadeComponentes() {
+        double total = motor.calcularPenalidade() + sensor.calcularPenalidade();
+        for (GarraFixacao g : garras) total += g.calcularPenalidade();
+        return total;
+    }
+
+    // Verdadeiro se qualquer parte exige revisao
+    private boolean componentesPrecisamRevisao() {
+        if (motor.precisaManutencao() || sensor.precisaManutencao()) return true;
+        for (GarraFixacao g : garras) {
+            if (g.precisaManutencao()) return true;
+        }
+        return false;
+    }
+
+    // Auditoria em cascata, uma linha indentada por parte
+    private String gerarRelatorioComponentes() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("\n    - ").append(motor.gerarRelatorioDiagnostico());
+        sb.append("\n    - ").append(sensor.gerarRelatorioDiagnostico());
+        for (GarraFixacao g : garras) sb.append("\n    - ").append(g.gerarRelatorioDiagnostico());
+        return sb.toString();
     }
 
     /** @return estado operacional derivado da saúde */
@@ -163,18 +219,21 @@ public abstract class Maquina implements Auditavel {
     public void reparar() {
         saude = 100.0;
         System.out.println("[OK] " + nome + " revisado(a) pela oficina. Saude 100%.");
+                motor.revisar();
+        sensor.revisar();
+        for (GarraFixacao g : garras) g.revisar();
     }
 
     /** {@inheritDoc} Verdadeiro se a saúde estiver abaixo do limiar de manutenção. */
     @Override
-    public boolean precisaManutencao() { return saude < limiarManutencao; }
+    public boolean precisaManutencao() { return saude < limiarManutencao || componentesPrecisamRevisao(); }
 
     /** {@inheritDoc} */
     @Override
     public String gerarRelatorioDiagnostico() {
         return String.format("[%-13s] %-42s saude %5.1f%% | falha %4.1f%% | usos %3d | falhas %2d | %s",
                 getTipo(), nome, saude, getProbabilidadeFalhaEfetiva() * 100, usos, historicoFalhas,
-                getEstado().getDescricao());
+                getEstado().getDescricao()) + gerarRelatorioComponentes();
     }
 
     /**
@@ -190,6 +249,21 @@ public abstract class Maquina implements Auditavel {
         }
         this.limiarManutencao = limiar;
     }
+
+     /** @return temperatura atual do motor spindle, em °C */
+    public double lerTemperaturaMotor() { return motor.getTemperatura(); }
+
+    /** @return quantidade de garras abaixo da pressão mínima */
+    public int contarGarrasFolgadas() {
+        int folgadas = 0;
+        for (GarraFixacao g : garras) {
+            if (g.estaFolgada()) folgadas++;
+        }
+        return folgadas;
+    }
+
+    /** @return quantidade de garras de fixação da máquina */
+    public int getQuantidadeGarras() { return garras.size(); }
 
     /** @return {@code true} se a máquina está ligada */
     public boolean estaLigada() { return ligada; }
