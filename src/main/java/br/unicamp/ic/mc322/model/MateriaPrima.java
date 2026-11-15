@@ -1,6 +1,6 @@
-package main.java.br.unicamp.ic.mc322.model;
+package br.unicamp.ic.mc322.model;
 
-import main.java.br.unicamp.ic.mc322.exception.RecursoInsuficienteException;
+import br.unicamp.ic.mc322.exception.RecursoInsuficienteException;
 
 /**
  * Estoque de liga de titânio do almoxarifado.
@@ -68,6 +68,20 @@ public class MateriaPrima {
     public boolean verificarDisponibilidade(double demanda) {
         return demanda > 0 && demanda <= quantidade;
     }
+
+        /**
+     * Define o estoque diretamente (restauração de save).
+     *
+     * @param valor nova quantidade finita e não negativa
+     * @throws IllegalArgumentException se o valor for negativo, infinito ou não for número
+     */
+    public void definirQuantidade(double valor) {
+        if (!(valor >= 0) || Double.isInfinite(valor)) {
+            throw new IllegalArgumentException("Estoque invalido: " + valor);
+        }
+        quantidade = valor;
+    }
+
 
     /** @return {@code true} se o estoque está no mínimo ou abaixo */
     public boolean estoqueBaixo() { return quantidade <= quantidadeMinima; }

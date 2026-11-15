@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<planta cenario="IDEAL" versao="1">
+  <budget>98470.0</budget>
+  <estoque>15500.0</estoque>
+  <demandas>
+    <demanda entregues="3" numero="1" quantidade="3" status="CONCLUIDA" tipo="ARRANCADA"/>
+  </demandas>
+</planta>

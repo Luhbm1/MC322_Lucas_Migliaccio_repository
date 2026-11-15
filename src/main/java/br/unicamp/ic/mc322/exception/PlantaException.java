@@ -1,4 +1,4 @@
-package main.java.br.unicamp.ic.mc322.exception;
+package br.unicamp.ic.mc322.exception;
 
 /**
  * Exceção base para violações das regras de negócio da planta.
@@ -17,5 +17,15 @@ public class PlantaException extends RuntimeException {
      */
     public PlantaException(String mensagem) {
         super(mensagem);
+    }
+
+    /**
+     * Cria a exceção preservando a causa original.
+     *
+     * @param mensagem explicação do problema
+     * @param causa    exceção que originou o erro
+     */
+    public PlantaException(String mensagem, Throwable causa) {
+        super(mensagem, causa);
     }
 }

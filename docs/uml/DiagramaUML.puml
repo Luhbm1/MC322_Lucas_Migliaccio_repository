@@ -1,65 +1,509 @@
 @startuml
-interface Auditavel {
-  +gerarRelatorioDiagnostico(): String
-  +precisaManutencao(): boolean
+skinparam classAttributeIconSize 0
+hide empty members
+
+package util {
+  class Cores <<utility>> {
+    +{static} RESET: String
+    +{static} VERMELHO: String
+    +{static} VERDE: String
+    +{static} AMARELO: String
+    +{static} CIANO: String
+    +{static} NEGRITO: String
+    -Cores()
+    +{static} pintar(texto: String, cor: String): String
+  }
 }
-class GerenciadorProducao {
-  -linha: LinhaDeProducao
-  +exibirLinha()
-  +exibirAuditoriaEstrutural()
+
+package exception {
+  class PlantaException {
+    +PlantaException(mensagem: String)
+    +PlantaException(mensagem: String, causa: Throwable)
+  }
+  class DemandaInvalidaException
+  class MaquinaIndisponivelException
+  class RecursoInsuficienteException
+  class PersistenciaException {
+    +PersistenciaException(mensagem: String)
+    +PersistenciaException(mensagem: String, causa: Throwable)
+  }
+  RuntimeException <|-- PlantaException
+  PlantaException <|-- DemandaInvalidaException
+  PlantaException <|-- MaquinaIndisponivelException
+  PlantaException <|-- RecursoInsuficienteException
+  PlantaException <|-- PersistenciaException
 }
-class LinhaDeProducao {
-  -nome: String
-  -maquinas: List<Maquina>
-  +adicionarMaquina(m: Maquina)
-  +getMaquinas(): List<Maquina> {unmodifiable}
-  +calcularCustoCiclo(): double
-  +buscarMaquinaQuebrada(): Maquina
+
+package model {
+  interface Auditavel {
+    +gerarRelatorioDiagnostico(): String
+    +precisaManutencao(): boolean
+  }
+
+  enum Cenario {
+    IDEAL
+    APOCALIPTICO
+    -descricao: String
+    -budgetInicial: double
+    -estoqueInicialLiga: double
+    -precoLiga: double
+    -multiplicadorFalha: double
+    -desgasteMaximo: double
+    -riscoInicialRotor: double
+    +getDescricao(): String
+    +getBudgetInicial(): double
+    +getEstoqueInicialLiga(): double
+    +getPrecoLiga(): double
+    +getMultiplicadorFalha(): double
+    +getDesgasteMaximo(): double
+    +getRiscoInicialRotor(): double
+  }
+
+  enum EstadoMaquina {
+    OPERANTE
+    DESGASTADA
+    QUEBRADA
+    -descricao: String
+    +getDescricao(): String
+  }
+
+  enum StatusDemanda {
+    PENDENTE
+    EM_PRODUCAO
+    CONCLUIDA
+    CANCELADA
+    +getDescricao(): String
+  }
+
+  enum StatusRotor {
+    AGUARDANDO_USINAGEM
+    EMBALADO
+    APROVADO
+    REPROVADO
+  }
+
+  enum TipoRotor {
+    RALLY
+    PULLING
+    ARRANCADA
+    +criarRotor(id: String): Produto
+    +getMassaBruta(): double
+    +getNomeComercial(): String
+    +getPrefixo(): String
+  }
+
+  class LinhaDeProducao {
+    -nome: String {readOnly}
+    -maquinas: List<Maquina> {readOnly}
+    +LinhaDeProducao(nome: String)
+    +adicionarMaquina(maquina: Maquina)
+    +getMaquinas(): List<Maquina> {unmodifiable}
+    +getQuantidadeMaquinas(): int
+    +getNome(): String
+    +calcularCustoCiclo(): double
+    +buscarMaquinaQuebrada(): Maquina
+    +ligar()
+    +desligar()
+    +gerarResumo(): String
+    +gerarRelatorioDiagnostico(): String
+    +precisaManutencao(): boolean
+  }
+
+  abstract class Maquina {
+    -{static} GERADOR: Random
+    -{static} LIMIAR_QUEBRA: double = 5.0
+    -{static} TEMP_MAXIMA_MOTOR: double = 85.0
+    -{static} QTD_GARRAS: int = 4
+    -nome: String
+    -ligada: boolean
+    -capacidadeMaxima: double
+    -probabilidadeFalhaBase: double
+    -custoOperacao: double
+    -saude: double = 100.0
+    -limiarManutencao: double = 30.0
+    -multiplicadorFalha: double = 1.0
+    -desgasteMaximo: double = 3.0
+    -historicoFalhas: int
+    -usos: int
+    -motor: MotorSpindle {readOnly}
+    -sensor: SensorVibracao {readOnly}
+    -garras: List<GarraFixacao> {readOnly}
+    +Maquina(nome: String, capacidadeMaxima: double, probabilidadeFalhaBase: double, custoOperacao: double)
+    +{abstract} processar(produto: Produto): boolean
+    +{abstract} getTipo(): String
+    +{static} definirSemente(semente: long)
+    +configurarCenario(cenario: Cenario)
+    +ligar()
+    +desligar()
+    +getProbabilidadeFalhaEfetiva(): double
+    #verificarFalha(): boolean
+    #{static} sortear(): double
+    +suporta(peso: double): boolean
+    #validarOperacao(produto: Produto)
+    -aplicarDesgaste()
+    -operarComponentes(produto: Produto)
+    -calcularPenalidadeComponentes(): double
+    -componentesPrecisamRevisao(): boolean
+    -gerarRelatorioComponentes(): String
+    +getEstado(): EstadoMaquina
+    +estaQuebrada(): boolean
+    +calcularCustoReparo(): double
+    +reparar()
+    +precisaManutencao(): boolean
+    +gerarRelatorioDiagnostico(): String
+    +setLimiarManutencao(limiar: double)
+    +lerTemperaturaMotor(): double
+    +contarGarrasFolgadas(): int
+    +getQuantidadeGarras(): int
+    +exportarEstado(): RegistroMaquina
+    +aceita(r: RegistroMaquina): boolean
+    +restaurarEstado(r: RegistroMaquina)
+    +estaLigada(): boolean
+    +getNome(): String
+    +getCustoOperacao(): double
+    +getCapacidadeMaxima(): double
+    +getSaude(): double
+    +getHistoricoFalhas(): int
+  }
+
+  class CentroUsinagemCNC {
+    -{static} AUMENTO_RISCO: double = 0.15
+    +CentroUsinagemCNC(nome: String, capacidadeMaxima: double)
+    +processar(produto: Produto): boolean
+    +getTipo(): String
+  }
+
+  class CabineEmbalagemVacuo {
+    -{static} AUMENTO_RISCO: double = 0.10
+    +CabineEmbalagemVacuo(nome: String, capacidadeMaxima: double)
+    +processar(produto: Produto): boolean
+    +getTipo(): String
+  }
+
+  class BancadaBalanceamento {
+    -{static} PESO_QUALIDADE: double = 0.25
+    -produtosInspecionados: int
+    +BancadaBalanceamento(nome: String, capacidadeMaxima: double)
+    +processar(produto: Produto): boolean
+    -calcularChanceRejeicao(produto: Produto): double
+    +getTotalInspecionados(): int
+    +getTipo(): String
+  }
+
+  class MotorSpindle {
+    -{static} TEMP_AMBIENTE: double = 25.0
+    -{static} PENALIDADE: double = 0.08
+    -temperaturaMaxima: double {readOnly}
+    -temperatura: double
+    +MotorSpindle(temperaturaMaxima: double)
+    +operar(sorteio: double)
+    +revisar()
+    +restaurar(temperatura: double)
+    +estaSuperaquecido(): boolean
+    +calcularPenalidade(): double
+    +getTemperatura(): double
+    +gerarRelatorioDiagnostico(): String
+    +precisaManutencao(): boolean
+  }
+
+  class SensorVibracao {
+    -desvioCalibracao: double
+    +SensorVibracao()
+    +operar(sorteio: double)
+    +revisar()
+    +restaurar(desvio: double)
+    +calcularPenalidade(): double
+    +getDesvioCalibracao(): double
+    +gerarRelatorioDiagnostico(): String
+    +precisaManutencao(): boolean
+  }
+
+  class GarraFixacao {
+    -{static} PRESSAO_MINIMA: double = 60.0
+    -{static} PENALIDADE: double = 0.04
+    -posicao: int {readOnly}
+    -pressao: double
+    +GarraFixacao(posicao: int)
+    +operar(sorteio: double)
+    +revisar()
+    +restaurar(pressao: double)
+    +estaFolgada(): boolean
+    +calcularPenalidade(): double
+    +getPressao(): double
+    +gerarRelatorioDiagnostico(): String
+    +precisaManutencao(): boolean
+  }
+
+  class RegistroMaquina <<record>> {
+    +tipo: String
+    +nome: String
+    +saude: double
+    +usos: int
+    +falhas: int
+    +limiar: double
+    +temperaturaMotor: double
+    +leituraSensor: double
+    +pressoesGarras: List<Double>
+  }
+
+  class Esteira {
+    -nome: String
+    -item: Object
+    -emMovimento: boolean
+    -capacidadeMaxima: double
+    -totalTransportado: int
+    -bloqueios: int
+    +Esteira(nome: String, capacidadeMaxima: double)
+    +ligar()
+    +desligar()
+    +verificarCapacidade(peso: double): boolean
+    +adicionarItem(novoItem: Object, peso: double)
+    +removerItem(): Object
+    +getNome(): String
+    +estaEmMovimento(): boolean
+    +estaVazia(): boolean
+    +getCapacidadeMaxima(): double
+    +getTotalTransportado(): int
+    +getBloqueios(): int
+    +toString(): String
+  }
+
+  class MateriaPrima {
+    -id: String
+    -nome: String
+    -quantidade: double
+    -unidade: String
+    -custoPorUnidade: double
+    -quantidadeMinima: double
+    +MateriaPrima(id: String, nome: String, quantidade: double, unidade: String, custoPorUnidade: double, quantidadeMinima: double)
+    +consumir(demanda: double)
+    +adicionarEstoque(valor: double)
+    +verificarDisponibilidade(demanda: double): boolean
+    +definirQuantidade(valor: double)
+    +estoqueBaixo(): boolean
+    +getId(): String
+    +getNome(): String
+    +getQuantidade(): double
+    +getUnidade(): String
+    +getCustoPorUnidade(): double
+    +getQuantidadeMinima(): double
+  }
+
+  class Demanda {
+    -{static} proximoNumero: int = 1
+    -numero: int {readOnly}
+    -tipo: TipoRotor {readOnly}
+    -quantidadeProdutos: int
+    -quantidadeProduzida: int
+    -status: StatusDemanda
+    -custoOperacaoPorUnidade: double
+    +Demanda(tipo: TipoRotor, quantidadeProdutos: int)
+    -Demanda(numero: int, tipo: TipoRotor, quantidadeProdutos: int, quantidadeProduzida: int, status: StatusDemanda)
+    +{static} restaurar(numero: int, tipo: TipoRotor, quantidadeProdutos: int, quantidadeProduzida: int, status: StatusDemanda): Demanda
+    +{static} reservarNumerosAte(ultimo: int)
+    +atualizarQuantidade(novaQuantidade: int)
+    +iniciarProducao()
+    +registrarRotorAprovado()
+    +concluir()
+    +cancelar()
+    +pausar()
+    +calcularMateriaPrimaNecessaria(): double
+    +definirCustoOperacaoPorUnidade(custo: double)
+    +calcularCustoEstimado(): double
+    +ehViavel(orcamento: double): boolean
+    +getNumero(): int
+    +getTipo(): TipoRotor
+    +getQuantidadeProdutos(): int
+    +getQuantidadeProduzida(): int
+    +getQuantidadeRestante(): int
+    +getStatus(): StatusDemanda
+    +toString(): String
+  }
+
+  abstract class Produto {
+    -{static} LIMIAR_RISCO: double = 0.30
+    -{static} totalProdutosFabricados: int
+    -id: String
+    -nome: String
+    -status: StatusRotor
+    -quantidadeMateriaPrimaPorUnidade: double
+    -qualidade: double
+    -probabilidadeFalhaAcumulada: double
+    -lote: String
+    +Produto(id: String, nome: String, quantidadeMateriaPrimaPorUnidade: double, qualidade: double)
+    +{abstract} processar()
+    +{abstract} calcularTempoProducao(): int
+    +{abstract} getTipo(): TipoRotor
+    +aumentarProbabilidadeFalha(incremento: double)
+    +registrarLote(lote: String)
+    +precisaManutencao(): boolean
+    +gerarRelatorioDiagnostico(): String
+    +getId(): String
+    +getNome(): String
+    +getStatus(): StatusRotor
+    +setStatus(status: StatusRotor)
+    +getQuantidadeMateriaPrimaPorUnidade(): double
+    +getQualidade(): double
+    +getProbabilidadeFalhaAcumulada(): double
+    +getLote(): String
+    +{static} getTotalProdutosFabricados(): int
+  }
+
+  class RotorRallySprint
 }
-abstract class Maquina {
-  -motor: MotorSpindle
-  -sensor: SensorVibracao
-  -garras: List<GarraFixacao>
-  +processar(p: Produto): boolean
-  +lerTemperaturaMotor(): double
-  +contarGarrasFolgadas(): int
-  +reparar()
-  -operarComponentes(p: Produto)
+
+package strategy {
+  interface EstrategiaProducao {
+    +selecionarDemanda(demandas: List<Demanda>, orcamentoDisponivel: double): Demanda
+    +getNomeEstrategia(): String
+    +ehElegivel(d: Demanda): boolean {default}
+  }
+  class EstrategiaFilaDoPaddock {
+    +selecionarDemanda(demandas: List<Demanda>, orcamentoDisponivel: double): Demanda
+    +getNomeEstrategia(): String
+  }
+  class EstrategiaGridLotado {
+    +selecionarDemanda(demandas: List<Demanda>, orcamentoDisponivel: double): Demanda
+    +getNomeEstrategia(): String
+  }
+  class EstrategiaOrcamentoDeEquipe {
+    +selecionarDemanda(demandas: List<Demanda>, orcamentoDisponivel: double): Demanda
+    +getNomeEstrategia(): String
+  }
 }
-class CentroUsinagemCNC
-class CabineEmbalagemVacuo
-class BancadaBalanceamento
-class MotorSpindle {
-  -temperatura: double
-  -temperaturaMaxima: double
-  +operar(sorteio: double)
-  +revisar()
-  +calcularPenalidade(): double
+
+package service {
+  class GerenciadorProducao {
+    -demandas: List<Demanda> {readOnly}
+    -produtosFabricados: List<Produto> {readOnly}
+    -rotoresSucateados: List<Produto> {readOnly}
+    -linha: LinhaDeProducao {readOnly}
+    -materiaPrima: MateriaPrima {readOnly}
+    -esteira: Esteira {readOnly}
+    -cenario: Cenario {readOnly}
+    -budget: double
+    -estrategiaAtual: EstrategiaProducao
+    +GerenciadorProducao(materiaPrima: MateriaPrima, esteira: Esteira, cenario: Cenario, estrategiaInicial: EstrategiaProducao)
+    +adicionarMaquina(maquina: Maquina)
+    +setEstrategia(novaEstrategia: EstrategiaProducao)
+    +registrarDemanda(tipo: TipoRotor, quantidade: int)
+    +atualizarDemanda(numero: int, novaQuantidade: int)
+    +cancelarDemanda(numero: int)
+    +listarDemandas()
+    +executarProximaProducao()
+    +fabricarDemanda(numero: int)
+    -fabricarDemanda(d: Demanda)
+    -validarInicioProducao(d: Demanda)
+    -fabricarUnidade(rotor: Produto, d: Demanda): boolean
+    -transportar(rotor: Produto)
+    -calcularCustoProducao(): double
+    -atualizarCustosDemandas()
+    -buscarMaquinaQuebrada(): Maquina
+    -ligarLinha()
+    -desligarLinha()
+    -gerarIdRotor(tipo: TipoRotor): String
+    -buscarDemanda(numero: int): Demanda
+    +listarMaquinas()
+    +repararMaquina(indice: int)
+    +getQuantidadeMaquinas(): int
+    +comprarMateriaPrima(quantidade: double)
+    +exibirBudget()
+    +exibirPrecoLiga()
+    +exibirArmazem()
+    +exibirEstoque()
+    +gerarAuditoriaGeral()
+    +detalharMaquinas()
+    +detalharProdutos()
+    -auditar(titulo: String, itens: List<? extends Auditavel>)
+    +exibirLinha()
+    +exibirAuditoriaEstrutural()
+    +getDemandas(): List<Demanda> {unmodifiable}
+    +getEstoqueLiga(): double
+    +exportarMaquinas(): List<RegistroMaquina>
+    +restaurarEstado(novoBudget: double, novoEstoque: double, novasDemandas: List<Demanda>, maquinasSalvas: List<RegistroMaquina>)
+    +getBudget(): double
+    +getCenario(): Cenario
+    +getEstrategiaAtual(): EstrategiaProducao
+    +getTamanhoArmazem(): int
+  }
 }
-class SensorVibracao {
-  -desvioCalibracao: double
-  +operar(sorteio: double)
-  +revisar()
-  +calcularPenalidade(): double
+
+package persistence {
+  class PersistenciaPlanta <<utility>> {
+    -{static} RAIZ: String = "planta"
+    -{static} VERSAO: String = "2"
+    -PersistenciaPlanta()
+    +{static} salvar(gp: GerenciadorProducao, arquivo: Path)
+    +{static} carregar(arquivo: Path, gp: GerenciadorProducao)
+    -{static} novoBuilder(): DocumentBuilder
+    -{static} lerMaquinas(raiz: Element): List<RegistroMaquina>
+    -{static} filhoUnico(pai: Element, tag: String, ctx: String): Element
+    -{static} lerDouble(s: String, campo: String): double
+    -{static} lerInt(s: String, campo: String): int
+    -{static} lerEnum(tipo: Class<E>, s: String, campo: String): E
+    -{static} moverAtomico(origem: Path, destino: Path)
+  }
 }
-class GarraFixacao {
-  -posicao: int
-  -pressao: double
-  +operar(sorteio: double)
-  +revisar()
-  +calcularPenalidade(): double
+
+class Main {
+  -{static} entrada: Scanner
+  -{static} ARQUIVO_SAVE: Path
+  +{static} main(args: String[])
+  -{static} executarComTratamento(gp: GerenciadorProducao, titanio: MateriaPrima, estrategias: EstrategiaProducao[]): boolean
+  -{static} carregarSaveInicial(gp: GerenciadorProducao)
+  -{static} salvarComTratamento(gp: GerenciadorProducao)
 }
-GerenciadorProducao *-- "1" LinhaDeProducao
-LinhaDeProducao o-- "1..*" Maquina
-Maquina *-- "1" MotorSpindle
-Maquina *-- "1" SensorVibracao
-Maquina *-- "1..*" GarraFixacao
-Maquina <|-- CentroUsinagemCNC
-Maquina <|-- CabineEmbalagemVacuo
-Maquina <|-- BancadaBalanceamento
+
+' ---------- Realizações ----------
 Auditavel <|.. LinhaDeProducao
 Auditavel <|.. Maquina
 Auditavel <|.. MotorSpindle
 Auditavel <|.. SensorVibracao
 Auditavel <|.. GarraFixacao
+Auditavel <|.. Produto
+EstrategiaProducao <|.. EstrategiaFilaDoPaddock
+EstrategiaProducao <|.. EstrategiaGridLotado
+EstrategiaProducao <|.. EstrategiaOrcamentoDeEquipe
+
+' ---------- Heranças ----------
+Maquina <|-- CentroUsinagemCNC
+Maquina <|-- CabineEmbalagemVacuo
+Maquina <|-- BancadaBalanceamento
+Produto <|-- RotorRallySprint
+
+' ---------- Composições ----------
+GerenciadorProducao *-- "1" LinhaDeProducao
+GerenciadorProducao *-- "0..*" Demanda : demandas
+GerenciadorProducao *-- "0..*" Produto : fabricados / sucata
+Maquina *-- "1" MotorSpindle
+Maquina *-- "1" SensorVibracao
+Maquina *-- "4" GarraFixacao
+
+' ---------- Agregações / associações ----------
+LinhaDeProducao o-- "0..*" Maquina
+GerenciadorProducao o-- "1" MateriaPrima
+GerenciadorProducao o-- "1" Esteira
+GerenciadorProducao --> "1" Cenario
+GerenciadorProducao --> "1" EstrategiaProducao : estrategiaAtual
+Demanda --> "1" TipoRotor
+Demanda --> "1" StatusDemanda
+Produto --> "1" StatusRotor
+
+' ---------- Dependências ----------
+Maquina ..> RegistroMaquina : exporta/restaura
+Maquina ..> EstadoMaquina
+Maquina ..> Cenario : configura
+Maquina ..> Produto : processa
+TipoRotor ..> Produto : <<create>>
+EstrategiaProducao ..> Demanda
+GerenciadorProducao ..> RegistroMaquina
+PersistenciaPlanta ..> GerenciadorProducao
+PersistenciaPlanta ..> RegistroMaquina
+PersistenciaPlanta ..> Demanda
+PersistenciaPlanta ..> PersistenciaException : <<throws>>
+GerenciadorProducao ..> PlantaException : <<throws>>
+Main ..> GerenciadorProducao
+Main ..> PersistenciaPlanta
+Main ..> EstrategiaProducao
+Main ..> Cores
 @enduml

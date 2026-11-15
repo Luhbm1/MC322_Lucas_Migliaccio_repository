@@ -1,24 +1,28 @@
-package main.java.br.unicamp.ic.mc322;
+package br.unicamp.ic.mc322;
 
-import main.java.br.unicamp.ic.mc322.exception.DemandaInvalidaException;
-import main.java.br.unicamp.ic.mc322.exception.MaquinaIndisponivelException;
-import main.java.br.unicamp.ic.mc322.exception.PlantaException;
-import main.java.br.unicamp.ic.mc322.exception.RecursoInsuficienteException;
-import main.java.br.unicamp.ic.mc322.model.BancadaBalanceamento;
-import main.java.br.unicamp.ic.mc322.model.CabineEmbalagemVacuo;
-import main.java.br.unicamp.ic.mc322.model.Cenario;
-import main.java.br.unicamp.ic.mc322.model.CentroUsinagemCNC;
-import main.java.br.unicamp.ic.mc322.model.Esteira;
-import main.java.br.unicamp.ic.mc322.model.Maquina;
-import main.java.br.unicamp.ic.mc322.model.MateriaPrima;
-import main.java.br.unicamp.ic.mc322.model.TipoRotor;
-import main.java.br.unicamp.ic.mc322.service.GerenciadorProducao;
-import main.java.br.unicamp.ic.mc322.strategy.EstrategiaFilaDoPaddock;
-import main.java.br.unicamp.ic.mc322.strategy.EstrategiaGridLotado;
-import main.java.br.unicamp.ic.mc322.strategy.EstrategiaOrcamentoDeEquipe;
-import main.java.br.unicamp.ic.mc322.strategy.EstrategiaProducao;
-import main.java.br.unicamp.ic.mc322.util.Cores;
+import br.unicamp.ic.mc322.exception.DemandaInvalidaException;
+import br.unicamp.ic.mc322.exception.MaquinaIndisponivelException;
+import br.unicamp.ic.mc322.exception.PlantaException;
+import br.unicamp.ic.mc322.exception.RecursoInsuficienteException;
+import br.unicamp.ic.mc322.model.BancadaBalanceamento;
+import br.unicamp.ic.mc322.model.CabineEmbalagemVacuo;
+import br.unicamp.ic.mc322.model.Cenario;
+import br.unicamp.ic.mc322.model.CentroUsinagemCNC;
+import br.unicamp.ic.mc322.model.Esteira;
+import br.unicamp.ic.mc322.model.Maquina;
+import br.unicamp.ic.mc322.model.MateriaPrima;
+import br.unicamp.ic.mc322.model.TipoRotor;
+import br.unicamp.ic.mc322.service.GerenciadorProducao;
+import br.unicamp.ic.mc322.strategy.EstrategiaFilaDoPaddock;
+import br.unicamp.ic.mc322.strategy.EstrategiaGridLotado;
+import br.unicamp.ic.mc322.strategy.EstrategiaOrcamentoDeEquipe;
+import br.unicamp.ic.mc322.strategy.EstrategiaProducao;
+import br.unicamp.ic.mc322.util.Cores;
+import br.unicamp.ic.mc322.exception.PersistenciaException;
+import br.unicamp.ic.mc322.persistence.PersistenciaPlanta;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 
@@ -27,7 +31,7 @@ import java.util.Scanner;
  * Ponto de entrada e de interação com o usuário (menu de terminal).
  * <p>
  * É o único ponto que captura exceções: erros de domínio
- * ({@link PlantaException}), de entrada ({@link IllegalArgumentException}) e
+ * ({@link br.unicamp.ic.mc322.exception.PlantaException}), de entrada ({@link IllegalArgumentException}) e
  * falhas inesperadas são exibidos em uma tela de erro e o usuário volta ao menu.
  *
  * @author Lucas Migliaccio
@@ -37,6 +41,8 @@ public class Main {
     private static final Scanner entrada = new Scanner(System.in);
     private static final String LINHA = "==============================================================";
     private static final String SEPARADOR = "--------------------------------------------------------------";
+    private static final Path ARQUIVO_SAVE = Path.of("dados", "planta.xml");
+
 
     private Main() { }
 
@@ -68,9 +74,11 @@ public class Main {
             gp.adicionarMaquina(new BancadaBalanceamento("Bancada de Balanceamento Dinamico", 3000.0));
 
             boolean executando = true;
+            carregarSaveInicial(gp);
             while (executando) {
                 executando = executarComTratamento(gp, titanio, estrategias);
             }
+            if (confirmar("Salvar a planta antes de encerrar?")) salvarComTratamento(gp);
             System.out.println("\nTurno encerrado. " + gp.getTamanhoArmazem()
                     + " rotor(es) prontos para entrega. Ate o proximo turno!");
         } catch (NoSuchElementException e) {
@@ -91,7 +99,9 @@ public class Main {
             exibirErro("MAQUINA INDISPONIVEL", e.getMessage());
         } catch (DemandaInvalidaException e) {
             exibirErro("PEDIDO INVALIDO", e.getMessage());
-        } catch (PlantaException e) {
+        } catch (PersistenciaException e) {
+            exibirErro("SAVE", e.getMessage() + "\nNenhuma alteracao foi realizada na planta.");
+        }    catch (PlantaException e) {
             exibirErro("OPERACAO NAO PERMITIDA", e.getMessage());
         } catch (IllegalArgumentException e) {
             exibirErro("ENTRADA INVALIDA", e.getMessage());
@@ -109,26 +119,51 @@ public class Main {
         exibirCabecalho(gp, titanio);
         opcoes("1 - Pedidos das equipes", "2 - Linha de producao", "3 - Consultar armazem/almoxarifado",
                "4 - Comprar liga de titanio", "5 - Estrategia de producao", "6 - Auditoria e oficina",
-               "0 - Encerrar turno");
-        switch (lerInteiro("ESCOLHA", 0, 6)) {
+               "7 - Salvar/Carregar planta", "0 - Encerrar turno");
+        switch (lerInteiro("ESCOLHA", 0, 7)) {
             case 1: menuPedidos(gp); break;
             case 2: menuFabricacao(gp); break;
             case 3: menuConsultas(gp); break;
             case 4: {
-            gp.exibirPrecoLiga();
-            double gramas = lerDouble("Gramas de liga a comprar (0 = voltar)", 0.0, 50000.0);
-            if (gramas == 0) {
-            System.out.println("Compra cancelada. Voltando ao menu...");
-            break;
-            }
-            gp.comprarMateriaPrima(gramas);
-            break;
+                gp.exibirPrecoLiga();
+                double gramas = lerDouble("Gramas de liga a comprar (0 = voltar)", 0.0, 50000.0);
+                if (gramas == 0) {
+                    System.out.println("Compra cancelada. Voltando ao menu...");
+                    break;
+                }
+                gp.comprarMateriaPrima(gramas);
+                break;
             }
             case 5: menuEstrategia(gp, estrategias); break;
             case 6: menuAuditoria(gp); break;
+            case 7: menuSave(gp); break;
             default: return false;
         }
         return true;
+    }
+
+    // Primeira execucao: sem save, a planta comeca com os dados padrao do cenario (situacao normal)
+    private static void carregarSaveInicial(GerenciadorProducao gp) {
+        if (!Files.exists(ARQUIVO_SAVE)) {
+            System.out.println("[i] Nenhum save encontrado. Iniciando com a planta padrao do cenario.");
+            return;
+        }
+        if (!confirmar("Save encontrado em " + ARQUIVO_SAVE + ". Carregar?")) return;
+        try {
+            PersistenciaPlanta.carregar(ARQUIVO_SAVE, gp);
+            System.out.println(Cores.pintar("[OK] Planta restaurada do save.", Cores.VERDE));
+        } catch (PersistenciaException e) {
+            exibirErro("SAVE", e.getMessage() + "\nIniciando com a planta padrao do cenario.");
+        }
+    }
+
+    private static void salvarComTratamento(GerenciadorProducao gp) {
+        try {
+            PersistenciaPlanta.salvar(gp, ARQUIVO_SAVE);
+            System.out.println(Cores.pintar("[OK] Planta salva em " + ARQUIVO_SAVE + ".", Cores.VERDE));
+        } catch (PersistenciaException e) {
+            exibirErro("SAVE", e.getMessage());
+        }
     }
 
     // ---------- Submenus ----------
@@ -177,7 +212,7 @@ public class Main {
     }
 
 
-        private static void menuConsultas(GerenciadorProducao gp) { // ao selecionar opção 3
+    private static void menuConsultas(GerenciadorProducao gp) { // ao selecionar opção 3
         secao("CONSULTAR");
         opcoes("1 - Armazem (rotores acabados)", "2 - Almoxarifado (liga bruta)",
                "3 - Linha de producao (maquinas e componentes)", "0 - Voltar");
@@ -203,6 +238,35 @@ public class Main {
                 gp.repararMaquina(lerInteiro("Maquina", 1, gp.getQuantidadeMaquinas()));
                 break;
             case 5: gp.exibirAuditoriaEstrutural(); break;
+            default: break;
+        }
+    }
+
+        private static void menuSave(GerenciadorProducao gp) { // ao selecionar opção 7
+        secao("SALVAR / CARREGAR PLANTA");
+        System.out.println("Arquivo: " + ARQUIVO_SAVE.toAbsolutePath());
+        opcoes("1 - Salvar planta", "2 - Carregar planta", "0 - Voltar");
+        switch (lerInteiro("ESCOLHA", 0, 2)) {
+            case 1: {
+                if (Files.exists(ARQUIVO_SAVE) && !confirmar("Ja existe um save. Sobrescrever?")) {
+                    System.out.println("Salvamento cancelado.");
+                    break;
+                }
+                PersistenciaPlanta.salvar(gp, ARQUIVO_SAVE);
+                System.out.println(Cores.pintar("[OK] Planta salva em " + ARQUIVO_SAVE + ".", Cores.VERDE));
+                break;
+            }
+            case 2: {
+                if (!confirmar("O progresso atual nao salvo sera substituido. Continuar?")) {
+                    System.out.println("Carregamento cancelado.");
+                    break;
+                }
+                PersistenciaPlanta.carregar(ARQUIVO_SAVE, gp);
+                System.out.println(Cores.pintar("[OK] Planta carregada de " + ARQUIVO_SAVE + ".", Cores.VERDE));
+                gp.listarDemandas();
+                gp.exibirBudget();
+                break;
+            }
             default: break;
         }
     }
@@ -302,4 +366,17 @@ public class Main {
             }
         }
     }
+
+    // Pergunta S/N ate receber uma resposta valida
+    private static boolean confirmar(String pergunta) {
+        while (true) {
+            System.out.print(pergunta + " (S/N): ");
+            String resposta = entrada.nextLine().trim().toUpperCase();
+            if (resposta.equals("S")) return true;
+            if (resposta.equals("N")) return false;
+            System.out.println("[ERRO] Responda S ou N.");
+        }
+    }
 }
+
+

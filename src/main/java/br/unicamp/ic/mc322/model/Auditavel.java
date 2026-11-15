@@ -1,4 +1,4 @@
-package main.java.br.unicamp.ic.mc322.model;
+package br.unicamp.ic.mc322.model;
 
 /**
  * Contrato de componentes que podem ser auditados pela federação

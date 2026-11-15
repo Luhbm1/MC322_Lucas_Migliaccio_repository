@@ -1,6 +1,6 @@
-package main.java.br.unicamp.ic.mc322.model;
+package br.unicamp.ic.mc322.model;
 
-import main.java.br.unicamp.ic.mc322.util.Cores;
+import br.unicamp.ic.mc322.util.Cores;
 
 /**
  * Centro de usinagem CNC: usina o rotor. Uma falha adiciona 15% de risco ao rotor.

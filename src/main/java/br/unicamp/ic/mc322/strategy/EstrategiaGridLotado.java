@@ -1,6 +1,6 @@
-package main.java.br.unicamp.ic.mc322.strategy;
+package br.unicamp.ic.mc322.strategy;
 
-import main.java.br.unicamp.ic.mc322.model.Demanda;
+import br.unicamp.ic.mc322.model.Demanda;
 
 import java.util.List;
 

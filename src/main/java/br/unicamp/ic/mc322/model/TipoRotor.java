@@ -1,8 +1,8 @@
-package main.java.br.unicamp.ic.mc322.model;
+package br.unicamp.ic.mc322.model;
 
 /**
  * Catálogo de rotores fabricados. Também atua como fábrica da subclasse
- * de {@link Produto} correspondente.
+ * de {@link br.unicamp.ic.mc322.model.Produto} correspondente.
  *
  * @author Lucas Migliaccio
  */
@@ -28,7 +28,7 @@ public enum TipoRotor {
      * Cria a subclasse concreta de rotor deste tipo.
      *
      * @param id identificador único do rotor
-     * @return novo rotor no status {@link StatusRotor#AGUARDANDO_USINAGEM}
+     * @return novo rotor no status {@link br.unicamp.ic.mc322.model.StatusRotor#AGUARDANDO_USINAGEM}
      */
     public Produto criarRotor(String id) {
         switch (this) {

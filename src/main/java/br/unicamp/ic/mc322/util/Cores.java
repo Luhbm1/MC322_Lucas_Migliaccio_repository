@@ -1,4 +1,4 @@
-package main.java.br.unicamp.ic.mc322.util;
+package br.unicamp.ic.mc322.util;
 
 /**
  * Utilitário com códigos ANSI para colorir a saída do terminal.

@@ -109,7 +109,7 @@ FUNCIONALIDADES IMPORTANTES:
 Atualização Tarefa 5:
 
     DIAGRAMA UML:
-        O diagrama de classes fica em docs/uml/, em código PlantUML (diagrama-classes.puml).
+        O diagrama de classes fica em docs/uml/, em código PlantUML (DiagramaUML.puml).
         Ele mostra as classes, os atributos, os métodos e as relações do sistema.
 
     DIAGNOSTICO DAS MAQUINAS:
@@ -120,9 +120,8 @@ Atualização Tarefa 5:
         O menu lista as máquinas numeradas, com a saúde (%) e o custo de reparo (R$).
         Assim o usuário escolhe qual máquina reparar sem precisar abrir outro menu.
 
-IDEIAS FUTURAS:
+Atualização Tarefa 6:
 
-    - Adicionar uma maneira de receber dinheiro dos clientes para retomar/aumentar o budget. Por enquanto o budget só diminui.
-    - Adicionar uma maneira de reaproveitar a sucata ou vender o material remanescente para a reciclagem.
-    - Adicionar a funcionalidade de produzir rotores sem pedidos e colocá-los no estoque para uso futuro.
-    - Juntamente com o anterior, adicionar a funcionalidade de empresas comprarem rotores prontos, sem precisar encomendá-los.
+    Todas as funcionalidades adicionadas no projeto para cumprir a Tarefa 6 foram explicadas em detalhes no arquivo README.md, encontrado na
+    raíz do projeto, como solicitado no enunciado.
+    Para executar os testes em JUnit no terminal, rodar ./gradlew clean test.

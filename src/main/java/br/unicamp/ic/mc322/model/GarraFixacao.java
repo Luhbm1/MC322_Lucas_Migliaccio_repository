@@ -1,9 +1,9 @@
-package main.java.br.unicamp.ic.mc322.model;
+package br.unicamp.ic.mc322.model;
 
-import main.java.br.unicamp.ic.mc322.util.Cores;
+import br.unicamp.ic.mc322.util.Cores;
 
 /**
- * Garra hidráulica que prende o bloco de titânio (Parte 1:N de {@link Maquina}).
+ * Garra hidráulica que prende o bloco de titânio (Parte 1:N de {@link br.unicamp.ic.mc322.model.Maquina}).
  * <p>
  * Perde entre 0 e 3% de pressão a cada ciclo. Abaixo de 60% fica folgada,
  * o bloco trepida e cada garra folgada adiciona 4% de risco ao rotor.
@@ -27,6 +27,21 @@ public class GarraFixacao implements Auditavel {
         this.posicao = posicao;
         this.pressao = 100.0;
     }
+
+    /** @return pressão atual (0 a 100) */
+    public double getPressao() { return pressao; }
+
+    /**
+     * Restaura a pressão salva.
+     *
+     * @param valor pressão de 0 a 100
+     * @throws IllegalArgumentException se fora da faixa
+     */
+    public void restaurar(double valor) {
+        if (!Double.isFinite(valor) || valor < 0 || valor > 100) throw new IllegalArgumentException("Pressao invalida.");
+        pressao = valor;
+    }
+
 
     /**
      * Executa um ciclo: perde entre 0 e 3% de pressão (mínimo 0%).

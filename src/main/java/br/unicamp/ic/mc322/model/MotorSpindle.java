@@ -1,13 +1,13 @@
-package main.java.br.unicamp.ic.mc322.model;
+package br.unicamp.ic.mc322.model;
 
-import main.java.br.unicamp.ic.mc322.util.Cores;
+import br.unicamp.ic.mc322.util.Cores;
 
 /**
- * Motor do fuso principal (Parte 1:1 de {@link Maquina}).
+ * Motor do fuso principal (Parte 1:1 de {@link br.unicamp.ic.mc322.model.Maquina}).
  * <p>
  * Aquece entre 2 e 8 °C a cada ciclo. Acima da temperatura máxima fica
  * superaquecido e adiciona 8% de risco a cada rotor processado.
- * Só existe dentro da máquina que o criou (composição estrita).
+ * Só existe dentro da máquina que o criou.
  *
  * @author Lucas Migliaccio
  */
@@ -27,6 +27,17 @@ public class MotorSpindle implements Auditavel {
     public MotorSpindle(double temperaturaMaxima) {
         this.temperaturaMaxima = temperaturaMaxima;
         this.temperatura = TEMP_AMBIENTE;
+    }
+
+        /**
+     * Restaura a temperatura salva.
+     *
+     * @param valor temperatura em °C (finita, >= 0)
+     * @throws IllegalArgumentException se inválida
+     */
+    public void restaurar(double valor) {
+        if (!Double.isFinite(valor) || valor < 0) throw new IllegalArgumentException("Temperatura invalida.");
+        temperatura = valor;
     }
 
     /**

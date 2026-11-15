@@ -1,7 +1,7 @@
-package main.java.br.unicamp.ic.mc322.model;
+package br.unicamp.ic.mc322.model;
 
-import main.java.br.unicamp.ic.mc322.exception.MaquinaIndisponivelException;
-import main.java.br.unicamp.ic.mc322.exception.PlantaException;
+import br.unicamp.ic.mc322.exception.MaquinaIndisponivelException;
+import br.unicamp.ic.mc322.exception.PlantaException;
 
 /**
  * Esteira de transferência entre máquinas: transporta uma peça por vez,

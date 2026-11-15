@@ -1,4 +1,4 @@
-package main.java.br.unicamp.ic.mc322.exception;
+package br.unicamp.ic.mc322.exception;
 
 /**
  * Lançada quando uma máquina ou a esteira não pode operar (desligada,

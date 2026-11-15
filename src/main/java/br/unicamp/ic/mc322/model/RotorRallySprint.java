@@ -1,4 +1,4 @@
-package main.java.br.unicamp.ic.mc322.model;
+package br.unicamp.ic.mc322.model;
 
 /**
  * Rotor Sprint 50/58 mm para rally/time attack: 500 g, qualidade 0,5, 40 min.

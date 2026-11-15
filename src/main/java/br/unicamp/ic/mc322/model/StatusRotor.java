@@ -1,4 +1,4 @@
-package main.java.br.unicamp.ic.mc322.model;
+package br.unicamp.ic.mc322.model;
 
 /**
  * Etapas pelas quais um rotor passa na linha de produção.

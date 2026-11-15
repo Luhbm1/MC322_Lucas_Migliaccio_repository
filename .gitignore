@@ -1,7 +1,12 @@
-build/
-.gradle/
-bin/
 *.class
+target/
+build/
+out/
+.gradle/
 .idea/
 *.iml
 .vscode/
+/dados/
+*.xml.tmp
+.DS_Store
+Thumbs.db

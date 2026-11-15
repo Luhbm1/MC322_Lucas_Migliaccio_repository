@@ -1,9 +1,9 @@
-package main.java.br.unicamp.ic.mc322.model;
+package br.unicamp.ic.mc322.model;
 
-import main.java.br.unicamp.ic.mc322.util.Cores;
+import br.unicamp.ic.mc322.util.Cores;
 
 /**
- * Acelerômetro de vibração (Parte 1:1 de {@link Maquina}).
+ * Acelerômetro de vibração (Parte 1:1 de {@link br.unicamp.ic.mc322.model.Maquina}).
  * <p>
  * A cada ciclo há 15% de chance de perder 10% de calibração. Com desvio de
  * 30% ou mais fica descalibrado, deixa passar vibrações e adiciona 5% de
@@ -30,6 +30,22 @@ public class SensorVibracao implements Auditavel {
      */
     public void operar(double sorteio) {
         if (sorteio < CHANCE_DESVIO) desvioCalibracao += PASSO_DESVIO;
+    }
+
+    /** @return desvio de calibração atual (0 = calibrado; 0,30 ou mais = descalibrado) */
+    public double getDesvioCalibracao() { return desvioCalibracao; }
+
+    /**
+     * Restaura o desvio de calibração salvo.
+     *
+     * @param valor desvio finito e não negativo
+     * @throws IllegalArgumentException se inválido (o estado não é alterado)
+     */
+    public void restaurar(double valor) {
+        if (!Double.isFinite(valor) || valor < 0) {
+            throw new IllegalArgumentException("Desvio de calibracao invalido: " + valor);
+        }
+        desvioCalibracao = valor;
     }
 
     /** Revisão: recalibra o sensor. */

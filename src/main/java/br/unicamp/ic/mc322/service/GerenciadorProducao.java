@@ -1,32 +1,34 @@
-package main.java.br.unicamp.ic.mc322.service;
+package br.unicamp.ic.mc322.service;
 
-import main.java.br.unicamp.ic.mc322.exception.DemandaInvalidaException;
-import main.java.br.unicamp.ic.mc322.exception.MaquinaIndisponivelException;
-import main.java.br.unicamp.ic.mc322.exception.PlantaException;
-import main.java.br.unicamp.ic.mc322.exception.RecursoInsuficienteException;
-import main.java.br.unicamp.ic.mc322.model.Auditavel;
-import main.java.br.unicamp.ic.mc322.model.Cenario;
-import main.java.br.unicamp.ic.mc322.model.Demanda;
-import main.java.br.unicamp.ic.mc322.model.Esteira;
-import main.java.br.unicamp.ic.mc322.model.LinhaDeProducao;
-import main.java.br.unicamp.ic.mc322.model.Maquina;
-import main.java.br.unicamp.ic.mc322.model.MateriaPrima;
-import main.java.br.unicamp.ic.mc322.model.Produto;
-import main.java.br.unicamp.ic.mc322.model.StatusDemanda;
-import main.java.br.unicamp.ic.mc322.model.TipoRotor;
-import main.java.br.unicamp.ic.mc322.strategy.EstrategiaProducao;
+import br.unicamp.ic.mc322.exception.DemandaInvalidaException;
+import br.unicamp.ic.mc322.exception.MaquinaIndisponivelException;
+import br.unicamp.ic.mc322.exception.PlantaException;
+import br.unicamp.ic.mc322.exception.RecursoInsuficienteException;
+import br.unicamp.ic.mc322.model.Auditavel;
+import br.unicamp.ic.mc322.model.Cenario;
+import br.unicamp.ic.mc322.model.Demanda;
+import br.unicamp.ic.mc322.model.Esteira;
+import br.unicamp.ic.mc322.model.LinhaDeProducao;
+import br.unicamp.ic.mc322.model.Maquina;
+import br.unicamp.ic.mc322.model.MateriaPrima;
+import br.unicamp.ic.mc322.model.Produto;
+import br.unicamp.ic.mc322.model.StatusDemanda;
+import br.unicamp.ic.mc322.model.TipoRotor;
+import br.unicamp.ic.mc322.model.RegistroMaquina;
+import br.unicamp.ic.mc322.strategy.EstrategiaProducao;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Collections;
 
 /**
  * Núcleo da planta: gerencia pedidos, linha de produção, oficina, compras e auditoria.
  * <p>
  * Todas as operações validam suas pré-condições antes de alterar qualquer
- * estado. Em caso de violação, lançam uma {@link PlantaException} (ou
+ * estado. Em caso de violação, lançam uma {@link br.unicamp.ic.mc322.exception.PlantaException} (ou
  * subclasse) e deixam estoque, budget e pedidos intactos.
  * <p>
- * As máquinas ficam agrupadas em uma {@link LinhaDeProducao} (agregação);
+ * As máquinas ficam agrupadas em uma {@link br.unicamp.ic.mc322.model.LinhaDeProducao} (agregação);
  * o gerenciador conversa apenas com a linha e as máquinas, nunca com as
  * partes internas delas.
  * 
@@ -465,6 +467,60 @@ public class GerenciadorProducao {
         System.out.println("\n================ AUDITORIA ESTRUTURAL ================");
         System.out.println(linha.gerarRelatorioDiagnostico());
     }
+
+        /** @return visão somente leitura dos pedidos */
+    public List<Demanda> getDemandas() { return Collections.unmodifiableList(demandas); }
+
+    /** @return estoque atual de liga, em gramas */
+    public double getEstoqueLiga() { return materiaPrima.getQuantidade(); }
+
+    /** @return retrato de cada máquina da linha, na ordem */
+    public List<RegistroMaquina> exportarMaquinas() {
+        List<RegistroMaquina> lista = new ArrayList<>();
+        for (Maquina m : linha.getMaquinas()) lista.add(m.exportarEstado());
+        return lista;
+    }
+
+    /**
+     * Substitui budget, estoque, pedidos e estado das máquinas de uma só vez.
+     * Valida tudo antes de alterar qualquer coisa.
+     *
+     * @param novoBudget    budget finito e não negativo
+     * @param novoEstoque   estoque finito e não negativo
+     * @param novasDemandas pedidos restaurados (sem nulos)
+     * @param maquinasSalvas estado das máquinas, na ordem da linha
+     * @throws IllegalArgumentException se algum dado for inválido ou incompatível
+     */
+    public void restaurarEstado(double novoBudget, double novoEstoque, List<Demanda> novasDemandas,
+                                List<RegistroMaquina> maquinasSalvas) {
+        if (!(novoBudget >= 0) || Double.isInfinite(novoBudget))
+            throw new IllegalArgumentException("Budget invalido: " + novoBudget);
+        if (!(novoEstoque >= 0) || Double.isInfinite(novoEstoque))
+            throw new IllegalArgumentException("Estoque invalido: " + novoEstoque);
+        if (novasDemandas == null || novasDemandas.contains(null))
+            throw new IllegalArgumentException("Lista de pedidos invalida.");
+        List<Maquina> maquinas = linha.getMaquinas();
+        if (maquinasSalvas == null || maquinasSalvas.size() != maquinas.size())
+            throw new IllegalArgumentException("Save possui " + (maquinasSalvas == null ? 0 : maquinasSalvas.size())
+                    + " maquina(s); a linha atual possui " + maquinas.size() + ".");
+        for (int i = 0; i < maquinas.size(); i++) {
+            if (!maquinas.get(i).aceita(maquinasSalvas.get(i)))
+                throw new IllegalArgumentException("Maquina " + (i + 1) + " do save incompativel com "
+                        + maquinas.get(i).getNome() + ".");
+        }
+
+        materiaPrima.definirQuantidade(novoEstoque);
+        budget = novoBudget;
+        demandas.clear();
+        demandas.addAll(novasDemandas);
+        int maior = 0;
+        for (Demanda d : demandas) maior = Math.max(maior, d.getNumero());
+        Demanda.reservarNumerosAte(maior);
+        for (int i = 0; i < maquinas.size(); i++) maquinas.get(i).restaurarEstado(maquinasSalvas.get(i));
+        atualizarCustosDemandas();
+    }
+
+
 
     /** @return budget atual, em R$ */
     public double getBudget() { return budget; }

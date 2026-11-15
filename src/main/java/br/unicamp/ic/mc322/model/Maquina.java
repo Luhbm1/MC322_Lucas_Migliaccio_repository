@@ -1,8 +1,8 @@
-package main.java.br.unicamp.ic.mc322.model;
+package br.unicamp.ic.mc322.model;
 
-import main.java.br.unicamp.ic.mc322.exception.MaquinaIndisponivelException;
-import main.java.br.unicamp.ic.mc322.exception.PlantaException;
-import main.java.br.unicamp.ic.mc322.util.Cores;
+import br.unicamp.ic.mc322.exception.MaquinaIndisponivelException;
+import br.unicamp.ic.mc322.exception.PlantaException;
+import br.unicamp.ic.mc322.util.Cores;
 
 import java.util.Random;
 import java.util.ArrayList;
@@ -21,8 +21,8 @@ import java.util.List;
  * </ul>
  * <p>
  * É o "Todo" da composição: cria e controla internamente um
- * {@link MotorSpindle} (1:1), um {@link SensorVibracao} (1:1) e quatro
- * {@link GarraFixacao} (1:N). As partes nunca são expostas; o acesso é feito
+ * {@link br.unicamp.ic.mc322.model.MotorSpindle} (1:1), um {@link br.unicamp.ic.mc322.model.SensorVibracao} (1:1) e quatro
+ * {@link br.unicamp.ic.mc322.model.GarraFixacao} (1:N). As partes nunca são expostas; o acesso é feito
  * por métodos de delegação. Partes com defeito aumentam o risco dos rotores
  * processados, e {@link #reparar()} também revisa todas as partes.
  * 
@@ -221,7 +221,7 @@ public abstract class Maquina implements Auditavel {
     /** @return custo do reparo completo, em R$ */
     public double calcularCustoReparo() { return (100.0 - saude) * custoOperacao * 0.2; }
 
-    /** Restaura a saúde para 100%. A cobrança é feita pelo {@link GerenciadorProducao}. */
+    /** Restaura a saúde para 100%. A cobrança é feita pelo {@link br.unicamp.ic.mc322.service.GerenciadorProducao}. */
     public void reparar() {
         saude = 100.0;
         System.out.println("[OK] " + nome + " revisado(a) pela oficina. Saude 100%.");
@@ -268,9 +268,43 @@ public abstract class Maquina implements Auditavel {
         return folgadas;
     }
 
+    /** @return retrato persistível da máquina e de seus componentes */
+    public RegistroMaquina exportarEstado() {
+        List<Double> pressoes = new ArrayList<>();
+        for (GarraFixacao g : garras) pressoes.add(g.getPressao());
+        return new RegistroMaquina(getTipo(), nome, saude, usos, historicoFalhas, limiarManutencao,
+                motor.getTemperatura(), sensor.getDesvioCalibracao(), pressoes);
+    }
+
+    /**
+     * @param r registro salvo
+     * @return {@code true} se o registro é compatível com esta máquina (tipo e nº de garras)
+     */
+    public boolean aceita(RegistroMaquina r) {
+        return r != null && getTipo().equals(r.tipo()) && r.pressoesGarras().size() == garras.size();
+    }
+
+    /**
+     * Restaura o estado salvo da máquina e de todas as suas partes.
+     *
+     * @param r registro já validado
+     * @throws IllegalArgumentException se o registro for incompatível (nada é alterado)
+     */
+    public void restaurarEstado(RegistroMaquina r) {
+        if (!aceita(r)) throw new IllegalArgumentException("Registro incompativel com " + nome + ".");
+        saude = r.saude();
+        usos = r.usos();
+        historicoFalhas = r.falhas();
+        limiarManutencao = r.limiar();
+        ligada = false;
+        motor.restaurar(r.temperaturaMotor());
+        sensor.restaurar(r.leituraSensor());
+        for (int i = 0; i < garras.size(); i++) garras.get(i).restaurar(r.pressoesGarras().get(i));
+    }
+
+
     /** @return quantidade de garras de fixação da máquina */
     public int getQuantidadeGarras() { return garras.size(); }
-
     /** @return {@code true} se a máquina está ligada */
     public boolean estaLigada() { return ligada; }
     /** @return nome da máquina */

@@ -1,4 +1,4 @@
-package main.java.br.unicamp.ic.mc322.model;
+package br.unicamp.ic.mc322.model;
 
 /**
  * Rotor Titan 90/100 mm para diesel pulling: 2500 g, qualidade 0,9, 95 min.

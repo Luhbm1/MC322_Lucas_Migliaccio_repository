@@ -1,13 +1,13 @@
-package main.java.br.unicamp.ic.mc322.model;
+package br.unicamp.ic.mc322.model;
 
-import main.java.br.unicamp.ic.mc322.exception.DemandaInvalidaException;
+import br.unicamp.ic.mc322.exception.DemandaInvalidaException;
 
 /**
  * Pedido de uma empresa para um tipo de rotor.
  * <p>
  * Controla quantidade total, quantidade já entregue e o ciclo de vida
- * ({@link StatusDemanda}). Toda transição inválida lança
- * {@link DemandaInvalidaException} sem alterar o estado do pedido.
+ * ({@link br.unicamp.ic.mc322.model.StatusDemanda}). Toda transição inválida lança
+ * {@link br.unicamp.ic.mc322.exception.DemandaInvalidaException} sem alterar o estado do pedido.
  *
  * @author Lucas Migliaccio
  */
@@ -38,6 +38,54 @@ public class Demanda {
         this.tipo = tipo;
         this.quantidadeProdutos = quantidadeProdutos;
         this.status = StatusDemanda.PENDENTE;
+    }
+
+    // Construtor de restauração, dados já validados por restaurar()
+    private Demanda(int numero, TipoRotor tipo, int quantidadeProdutos,
+                    int quantidadeProduzida, StatusDemanda status) {
+        this.numero = numero;
+        this.tipo = tipo;
+        this.quantidadeProdutos = quantidadeProdutos;
+        this.quantidadeProduzida = quantidadeProduzida;
+        this.status = status;
+    }
+
+    /**
+     * Recria um pedido salvo, validando a consistência dos dados.
+     * Não consome números do contador.
+     *
+     * @param numero              número original (mínimo 1)
+     * @param tipo                tipo de rotor
+     * @param quantidadeProdutos  total do pedido (mínimo 1)
+     * @param quantidadeProduzida já entregues (0 até o total)
+     * @param status              status salvo (EM_PRODUCAO não é persistível)
+     * @return pedido restaurado
+     * @throws DemandaInvalidaException se os dados forem inconsistentes
+     */
+    public static Demanda restaurar(int numero, TipoRotor tipo, int quantidadeProdutos,
+                                    int quantidadeProduzida, StatusDemanda status) {
+        if (numero < 1) throw new DemandaInvalidaException("Numero de pedido invalido: " + numero + ".");
+        if (tipo == null || status == null) throw new DemandaInvalidaException("Tipo ou status ausente.");
+        if (quantidadeProdutos < 1) throw new DemandaInvalidaException("O pedido precisa ter pelo menos 1 rotor.");
+        if (quantidadeProduzida < 0 || quantidadeProduzida > quantidadeProdutos) {
+            throw new DemandaInvalidaException("Quantidade entregue fora da faixa 0.." + quantidadeProdutos + ".");
+        }
+        if (status == StatusDemanda.EM_PRODUCAO) {
+            throw new DemandaInvalidaException("Pedido em producao nao pode ser restaurado.");
+        }
+        if (status == StatusDemanda.CONCLUIDA && quantidadeProduzida != quantidadeProdutos) {
+            throw new DemandaInvalidaException("Pedido concluido com rotores restantes.");
+        }
+        return new Demanda(numero, tipo, quantidadeProdutos, quantidadeProduzida, status);
+    }
+
+    /**
+     * Garante que novos pedidos recebam número maior que {@code ultimo}.
+     *
+     * @param ultimo maior número já em uso
+     */
+    public static void reservarNumerosAte(int ultimo) {
+        if (ultimo >= proximoNumero) proximoNumero = ultimo + 1;
     }
 
     /**

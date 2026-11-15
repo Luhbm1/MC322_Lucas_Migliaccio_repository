@@ -1,8 +1,9 @@
 plugins {
+    id 'java'
     id 'application'
 }
 
-group = 'br.unicamp.mc322'
+group = 'br.unicamp.ic.mc322'
 version = '4.0'
 
 repositories {
@@ -15,7 +16,7 @@ java {
 }
 
 application {
-    mainClass = 'Main'
+    mainClass = 'br.unicamp.ic.mc322.Main'
 }
 
 tasks.withType(JavaCompile).configureEach { // tratamento de acentos nos comentarios
@@ -30,7 +31,28 @@ javadoc { // organização da documentação javadoc
     options.addBooleanOption('Xdoclint:all,-missing', true) // ignora descrições ausentes em documentação no javadoc
 }
 
+tasks.withType(Javadoc).configureEach { // tratamento de caracteres especias para o javadoc
+    options.encoding = 'UTF-8'
+    options.charSet = 'UTF-8'
+    options.docEncoding = 'UTF-8'
+}
+
 // necessario para o Scanner ler o teclado
 run {
     standardInput = System.in
 }
+
+// implementação de testes JUnit
+dependencies {
+    testImplementation platform('org.junit:junit-bom:5.11.4')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+test {
+    useJUnitPlatform()
+    testLogging { events 'passed', 'skipped', 'failed'}
+    testLogging { exceptionFormat = 'full' }
+}
+

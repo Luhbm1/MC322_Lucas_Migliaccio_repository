@@ -1,4 +1,4 @@
-package main.java.br.unicamp.ic.mc322.model;
+package br.unicamp.ic.mc322.model;
 
 /**
  * Ciclo de vida de um pedido: {@code PENDENTE -> EM_PRODUCAO -> CONCLUIDA},

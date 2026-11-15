@@ -1,6 +1,6 @@
-package main.java.br.unicamp.ic.mc322.model;
+package br.unicamp.ic.mc322.model;
 
-import main.java.br.unicamp.ic.mc322.util.Cores;
+import br.unicamp.ic.mc322.util.Cores;
 
 /**
  * Bancada de balanceamento dinâmico: aprova ou reprova o rotor.

@@ -1,6 +1,6 @@
-package main.java.br.unicamp.ic.mc322.model;
+package br.unicamp.ic.mc322.model;
 
-import main.java.br.unicamp.ic.mc322.exception.PlantaException;
+import br.unicamp.ic.mc322.exception.PlantaException;
 
 import java.util.ArrayList;
 import java.util.Collections;

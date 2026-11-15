@@ -1,4 +1,4 @@
-package main.java.br.unicamp.ic.mc322.model;
+package br.unicamp.ic.mc322.model;
 
 /**
  * Rotor DualBlade 72/78 mm para arrancada: 1500 g, qualidade 0,7, 70 min.
